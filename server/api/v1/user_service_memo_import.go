@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -16,6 +17,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/usememos/memos/core/journal"
 	"github.com/usememos/memos/core/memoexport"
 	"github.com/usememos/memos/core/memopayload"
 	"github.com/usememos/memos/internal/ratelimit"
@@ -218,6 +220,9 @@ func (i *memoImporter) importMemo(record *memoexport.Memo) error {
 }
 
 func (i *memoImporter) createMemo(record *memoexport.Memo, targetUID string, content []byte) error {
+	if err := i.markJournalImport(targetUID, record.UID); err != nil {
+		return err
+	}
 	memo, err := i.buildMemo(record, targetUID, content)
 	if err != nil {
 		return err
@@ -240,6 +245,8 @@ func (i *memoImporter) createMemo(record *memoexport.Memo, targetUID string, con
 	}
 	// Creation never sets pinned or the lifecycle state; they follow in a
 	// second write, as they do for a memo created through the API.
+	// Importing an archive is not permission to publish its entries.
+	memo.Visibility = store.Private
 	wantPinned, wantRowStatus := memo.Pinned, memo.RowStatus
 	err = i.bindAttachments(memo, added, added, func(prepared *preparedMemoAttachments, required []int32) error {
 		if err := i.service.createMemoWithMutation(i.ctx, i.user, memo, parentID, prepared, required, nil); err != nil {
@@ -270,6 +277,15 @@ func (i *memoImporter) createMemo(record *memoexport.Memo, targetUID string, con
 }
 
 func (i *memoImporter) replaceMemo(record *memoexport.Memo, existing *store.Memo, content []byte) error {
+	if err := i.markJournalImport(existing.UID, record.UID); err != nil {
+		return err
+	}
+	if err := i.service.suspendPartitionMemoDeliveries(i.ctx, i.user.ID, existing.UID); err != nil {
+		return err
+	}
+	if err := journal.RevokeMemoDerivatives(i.ctx, i.service.Store, i.user.ID, existing.UID); err != nil {
+		return err
+	}
 	next, err := i.buildMemo(record, existing.UID, content)
 	if err != nil {
 		return err
@@ -277,6 +293,8 @@ func (i *memoImporter) replaceMemo(record *memoexport.Memo, existing *store.Memo
 	if record.Parent != "" && (existing.ParentUID == nil || *existing.ParentUID != record.Parent) {
 		i.warn(record.UID, "comment threading of an existing memo cannot be changed; the parent from the archive was ignored")
 	}
+	// Restoring content never republishes the previous public audience.
+	next.Visibility = store.Private
 	update := &store.UpdateMemo{
 		ID:         existing.ID,
 		Content:    &next.Content,
@@ -623,4 +641,19 @@ func (i *memoImporter) applyRelations(written writtenMemo) error {
 		return nil
 	}
 	return i.service.applyMemoMutation(i.ctx, memo, nil, nil, nil, &relations)
+}
+
+// Imported history cannot silently enter a previously authorized dynamic share.
+func (i *memoImporter) markJournalImport(uid, originalUID string) error {
+	payload, _ := json.Marshal(map[string]any{"imported": true, "importedTs": time.Now().Unix(), "originalUID": originalUID})
+	doc, err := i.service.Store.GetJournalDocument(i.ctx, i.user.ID, "provenance", uid)
+	if err != nil {
+		return err
+	}
+	version := int64(0)
+	if doc != nil {
+		version = doc.Version
+	}
+	_, err = i.service.Store.PutJournalDocument(i.ctx, &store.JournalDocument{OwnerID: i.user.ID, Kind: "provenance", Key: uid, Payload: payload}, version)
+	return err
 }

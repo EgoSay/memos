@@ -10,6 +10,7 @@ import type { Memo } from "@/types/proto/api/v1/memo_service_pb";
 const mocks = vi.hoisted(() => ({
   updateMemo: vi.fn(),
   deleteMemo: vi.fn(),
+  journalRequest: vi.fn(),
   copy: vi.fn(),
 }));
 
@@ -17,6 +18,7 @@ vi.mock("copy-to-clipboard", () => ({ default: mocks.copy }));
 
 vi.mock("@/hooks/useMemoQueries", () => ({
   memoKeys: {
+    lists: () => ["memos", "list"],
     comments: (name: string) => ["memos", name, "comments"],
     detail: (name: string) => ["memos", name, "detail"],
   },
@@ -78,6 +80,7 @@ describe("Memo detail mutation navigation", () => {
     mocks.updateMemo.mockReset().mockResolvedValue(undefined);
     mocks.deleteMemo.mockReset().mockResolvedValue(undefined);
     mocks.copy.mockReset();
+    mocks.journalRequest.mockReset().mockResolvedValue(undefined);
   });
 
   it.each([
@@ -98,6 +101,8 @@ describe("Memo detail mutation navigation", () => {
     const { result } = renderActions(State.NORMAL, "", origin);
     await act(() => result.current.handlers.confirmDeleteMemo());
     expect(result.current.pathname + result.current.search).toBe(origin);
+    expect(mocks.journalRequest).toHaveBeenCalledWith("/memos/1/trash", { method: "POST" });
+    expect(mocks.deleteMemo).not.toHaveBeenCalled();
   });
 
   it("returns directly to a global origin after deleting", async () => {
@@ -130,3 +135,5 @@ describe("Memo detail mutation navigation", () => {
     expect(mocks.copy).toHaveBeenCalledWith(link);
   });
 });
+
+vi.mock("@/hooks/useJournalQueries", () => ({ journalRequest: mocks.journalRequest }));

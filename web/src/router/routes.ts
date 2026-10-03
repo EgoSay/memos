@@ -18,6 +18,14 @@ export const ROUTES = {
   AUTH_ADMIN: "/auth/admin",
   AUTH_CALLBACK: "/auth/callback",
   SHARED_MEMO: "/memos/shares",
+  JOURNAL: "/journal",
+  JOURNAL_REVIEW: "/journal/review",
+  JOURNAL_WANDER: "/journal/wander",
+  JOURNAL_INSIGHTS: "/journal/insights",
+  JOURNAL_PARTITIONS: "/journal/partitions",
+  JOURNAL_SHARES: "/journal/shares",
+  JOURNAL_TRASH: "/journal/trash",
+  JOURNAL_BACKUP: "/journal/backup",
 } as const;
 
 /** Router pattern for the calendar: month and day are optional so `/calendar` can redirect. */

@@ -112,3 +112,5 @@ describe("InsertMenu", () => {
     expect(screen.getByLabelText("editor.validation.resolve-image-uploads")).toHaveAttribute("tabindex", "0");
   });
 });
+
+vi.mock("@/components/Journal/PartitionPicker", () => ({ default: () => null }));

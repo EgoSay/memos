@@ -84,7 +84,7 @@ func TestGeneralUserSettingSaveMediaMetadata(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.True(t, updated.GetGeneralSetting().GetSaveMediaMetadata())
-	require.Equal(t, "en", updated.GetGeneralSetting().GetLocale())
+	require.Equal(t, defaultSetting.GetGeneralSetting().GetLocale(), updated.GetGeneralSetting().GetLocale(), "media preference updates preserve the locale")
 	require.Equal(t, "PRIVATE", updated.GetGeneralSetting().GetMemoVisibility())
 
 	updated, err = ts.Service.UpdateUserSetting(userCtx, &apiv1.UpdateUserSettingRequest{

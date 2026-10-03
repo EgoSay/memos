@@ -60,6 +60,18 @@ func insertMySQLAttachment(ctx context.Context, executor memoUpdateExecer, creat
 	}
 	args := []any{create.UID, create.Filename, create.Blob, create.Type, create.Size, create.CreatorID, create.MemoID, storageType, create.Reference, payloadString}
 
+	if create.CreatedTs != 0 {
+		fields = append(fields, "`created_ts`")
+		placeholder = append(placeholder, "FROM_UNIXTIME(?)")
+		args = append(args, create.CreatedTs)
+	}
+
+	if create.UpdatedTs != 0 {
+		fields = append(fields, "`updated_ts`")
+		placeholder = append(placeholder, "FROM_UNIXTIME(?)")
+		args = append(args, create.UpdatedTs)
+	}
+
 	stmt := "INSERT INTO `attachment` (" + strings.Join(fields, ", ") + ") VALUES (" + strings.Join(placeholder, ", ") + ")"
 	result, err := executor.ExecContext(ctx, stmt, args...)
 	if err != nil {

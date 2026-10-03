@@ -55,6 +55,9 @@ describe("existing memo audio transcription", () => {
       pending.resolve("Recognized meeting discussion");
       await pending.promise;
     });
+    await waitFor(() => expect(screen.getByLabelText("转写候选文字 · 原录音会保留")).toHaveValue("Recognized meeting discussion"));
+    expect(container.querySelector(".cm-content")?.textContent).not.toContain("Recognized meeting discussion");
+    fireEvent.click(screen.getByRole("button", { name: "加入正文" }));
     await waitFor(() => expect(container.querySelector(".cm-content")?.textContent).toContain("Recognized meeting discussion"));
     expect(container.querySelector(".cm-content")?.textContent).toContain(memo.content);
     expect(screen.getByText("voice.wav")).toBeInTheDocument();

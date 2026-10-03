@@ -12,6 +12,13 @@ const MAX_CONCURRENT_UPLOADS = 4;
 export const uploadService = {
   async uploadFile(localFile: LocalFile, signal?: AbortSignal): Promise<Attachment> {
     const { file, motionMedia } = localFile;
+    if (localFile.clientId) {
+      try {
+        return await attachmentServiceClient.getAttachment({ name: `attachments/${localFile.clientId}` }, { signal });
+      } catch (error) {
+        if (ConnectError.from(error).code !== Code.NotFound) throw error;
+      }
+    }
     const mediaMetadata = await localFile.mediaMetadata;
     const spec = create(UploadAttachmentSpecSchema, {
       attachment: create(AttachmentSchema, {
@@ -21,6 +28,7 @@ export const uploadService = {
         mediaMetadata,
       }),
       totalSize: BigInt(file.size),
+      attachmentId: localFile.clientId,
     });
     // The spec call carries no data so that retrying it after a lost response
     // can at worst orphan an upload, never create a duplicate attachment.

@@ -6,6 +6,8 @@ export type MemoTimeDisplay = "relative" | "time";
 export interface MemoViewProps {
   memo: Memo;
   compact?: boolean;
+  /** Private journaling omits social reactions and comment previews. */
+  privateDiary?: boolean;
   timeDisplay?: MemoTimeDisplay;
   showCreator?: boolean;
   showVisibility?: boolean;
@@ -22,6 +24,7 @@ export interface MemoViewHandle {
 }
 
 export interface MemoHeaderProps {
+  privateDiary?: boolean;
   timeDisplay?: MemoTimeDisplay;
   showCreator?: boolean;
   showVisibility?: boolean;
@@ -30,4 +33,5 @@ export interface MemoHeaderProps {
 
 export interface MemoBodyProps {
   compact?: boolean;
+  privateDiary?: boolean;
 }

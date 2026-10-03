@@ -3,9 +3,13 @@ import { createInitialState } from "./types";
 
 export function editorReducer(state: EditorState, action: EditorAction): EditorState {
   switch (action.type) {
+    case "RESTORE_DRAFT":
+      return { ...action.payload, contentSource: "external" };
+
     case "INIT_MEMO":
       return {
         ...state,
+        ...action.payload,
         content: action.payload.content,
         contentSource: "external",
         metadata: action.payload.metadata,
@@ -18,6 +22,7 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       }
       return {
         ...state,
+        ...action.payload,
         content: action.payload.content,
         contentSource: action.payload.source,
       };
@@ -35,7 +40,10 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
     case "ADD_LOCAL_FILE":
       return {
         ...state,
-        localFiles: [...state.localFiles, action.payload],
+        localFiles: [
+          ...state.localFiles,
+          { ...action.payload, clientId: action.payload.clientId ?? crypto.randomUUID().replaceAll("-", "") },
+        ],
       };
 
     case "REMOVE_LOCAL_FILE":
@@ -47,7 +55,7 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
     case "SET_LOCAL_FILES":
       return {
         ...state,
-        localFiles: action.payload,
+        localFiles: action.payload.map((file) => ({ ...file, clientId: file.clientId ?? crypto.randomUUID().replaceAll("-", "") })),
       };
 
     case "TOGGLE_FOCUS_MODE":

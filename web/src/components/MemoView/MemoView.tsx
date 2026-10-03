@@ -45,6 +45,7 @@ const MemoView = forwardRef<MemoViewHandle, MemoViewProps>((props, ref) => {
     showVisibility,
     showPinned,
     showSpace,
+    privateDiary,
   } = props;
   const cardRef = useRef<HTMLDivElement>(null);
   const [showEditor, setShowEditor] = useState(false);
@@ -117,7 +118,7 @@ const MemoView = forwardRef<MemoViewHandle, MemoViewProps>((props, ref) => {
   useImperativeHandle(ref, () => ({ openEditor }), [openEditor]);
 
   const isInMemoDetailPage = isMemoDetailPath(location.pathname, memoData.name);
-  const showCommentPreview = !isInMemoDetailPage && computeCommentAmount(memoData) > 0;
+  const showCommentPreview = !privateDiary && !isInMemoDetailPage && computeCommentAmount(memoData) > 0;
 
   // The card width is only needed by the share-image dialog. Keep feed cards
   // free of a permanent ResizeObserver and measure only while that dialog is open.
@@ -190,9 +191,15 @@ const MemoView = forwardRef<MemoViewHandle, MemoViewProps>((props, ref) => {
       tabIndex={readonly ? -1 : 0}
     >
       {showPinned && memoData.pinned && <MemoPinnedMark />}
-      <MemoHeader timeDisplay={timeDisplay} showCreator={showCreator} showVisibility={showVisibility} showSpace={showSpace} />
+      <MemoHeader
+        timeDisplay={timeDisplay}
+        showCreator={showCreator}
+        showVisibility={showVisibility}
+        showSpace={showSpace}
+        privateDiary={privateDiary}
+      />
 
-      <MemoBody compact={compact} />
+      <MemoBody compact={compact} privateDiary={privateDiary} />
 
       {previewState.items.length > 0 && (
         <Suspense fallback={null}>

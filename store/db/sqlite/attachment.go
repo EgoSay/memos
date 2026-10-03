@@ -56,6 +56,18 @@ func insertSQLiteAttachment(ctx context.Context, executor dbExecutor, create *st
 	}
 	args := []any{create.UID, create.Filename, create.Blob, create.Type, create.Size, create.CreatorID, create.MemoID, storageType, create.Reference, payloadString}
 
+	if create.CreatedTs != 0 {
+		fields = append(fields, "`created_ts`")
+		placeholder = append(placeholder, "?")
+		args = append(args, create.CreatedTs)
+	}
+
+	if create.UpdatedTs != 0 {
+		fields = append(fields, "`updated_ts`")
+		placeholder = append(placeholder, "?")
+		args = append(args, create.UpdatedTs)
+	}
+
 	stmt := "INSERT INTO `attachment` (" + strings.Join(fields, ", ") + ") VALUES (" + strings.Join(placeholder, ", ") + ") RETURNING `id`, `created_ts`, `updated_ts`"
 	if err := executor.QueryRowContext(ctx, stmt, args...).Scan(&create.ID, &create.CreatedTs, &create.UpdatedTs); err != nil {
 		return nil, err

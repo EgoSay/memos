@@ -14,6 +14,7 @@ export interface MemoDetailSidebarDescriptor {
   from?: string;
   commentCount?: number;
   readonly?: boolean;
+  privateDiary?: boolean;
   onEdit?: () => void;
   onCommentsOpen?: () => void;
   onCommentCreate?: () => void;

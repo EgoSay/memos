@@ -2,8 +2,9 @@ package store
 
 import (
 	"context"
-	"errors"
 	"slices"
+
+	"github.com/pkg/errors"
 )
 
 // ErrMemoMutationConflict indicates that memo or attachment state changed
@@ -34,6 +35,7 @@ type MemoMutation struct {
 	MemoID                    int32
 	MemoCreatorID             int32
 	ExpectedMemoContent       string
+	ExpectedRecordHash        string
 	MemoUpdate                *UpdateMemo
 	Bindings                  []*MemoAttachmentBinding
 	RemovedAttachmentIDs      []int32
@@ -162,5 +164,11 @@ func (s *Store) ApplyMemoMutation(ctx context.Context, mutation *MemoMutation) e
 			seenRelatedMemoIDs[relation.RelatedMemoID] = struct{}{}
 		}
 	}
-	return s.driver.ApplyMemoMutation(ctx, mutation)
+	err := s.driver.ApplyMemoMutation(ctx, mutation)
+	// Serializable databases may reject a racing transaction before our tuple
+	// comparison runs. Preserve the same retry/compare contract for that case.
+	if mutation.ExpectedRecordHash != "" && s.driver.IsRetryableAuthenticationMutationError(err) {
+		return errors.Wrapf(ErrMemoMutationConflict, "concurrent record transaction: %v", err)
+	}
+	return err
 }

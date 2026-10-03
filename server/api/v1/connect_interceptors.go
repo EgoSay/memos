@@ -59,6 +59,12 @@ func (*MetadataInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc 
 			md.Set(challengeTokenMetadataKey, token)
 		}
 
+		if expected := header.Get("X-Memos-Expected-Content-Sha256"); expected != "" {
+			md.Set("x-memos-expected-content-sha256", expected)
+		}
+		if expected := req.Header().Get("X-Memos-Expected-Record-Sha256"); expected != "" {
+			md.Set("x-memos-expected-record-sha256", expected)
+		}
 		// Set metadata in context so services can use metadata.FromIncomingContext()
 		ctx = metadata.NewIncomingContext(ctx, md)
 

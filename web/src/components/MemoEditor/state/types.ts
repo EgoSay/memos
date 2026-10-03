@@ -1,5 +1,5 @@
 import type { Attachment } from "@/types/proto/api/v1/attachment_service_pb";
-import type { Location, MemoRelation } from "@/types/proto/api/v1/memo_service_pb";
+import type { Location, Memo, MemoRelation } from "@/types/proto/api/v1/memo_service_pb";
 import { Visibility } from "@/types/proto/api/v1/memo_service_pb";
 import type { LocalFile } from "../types/attachment";
 
@@ -7,10 +7,18 @@ export type LoadingKey = "saving" | "uploading" | "loading" | "transcribing";
 export type ContentSource = "editor" | "external";
 
 export interface EditorState {
+  /** Stable across retries and reloads; regenerated only after a successful save. */
+  clientId?: string;
+  /** The version actually opened by the user, never a fresh read at save time. */
+  baselineMemo?: Memo;
   content: string;
   contentSource: ContentSource;
   metadata: {
     visibility: Visibility;
+    journalPartitionId?: string;
+    journalSyncEnabled?: boolean;
+    journalPartitionSuspended?: boolean;
+    journalPartitionExplicit?: boolean;
     /** Destination chosen in an unscoped new-memo composer. */
     space?: string;
     attachments: Attachment[];
@@ -57,6 +65,7 @@ export type EditorAction =
   | { type: "SET_RECORDER_BUSY"; payload: boolean }
   | { type: "SET_JUST_SAVED"; payload: boolean }
   | { type: "ACCEPT_SUGGESTION"; payload: string }
+  | { type: "RESTORE_DRAFT"; payload: EditorState }
   | { type: "RESET" };
 
 // Module-private template for createInitialState.
@@ -93,6 +102,7 @@ const defaultState: EditorState = {
 export function createInitialState(initialFocusMode = false): EditorState {
   return {
     ...defaultState,
+    clientId: crypto.randomUUID().replaceAll("-", ""),
     ui: { ...defaultState.ui, isFocusMode: initialFocusMode },
   };
 }

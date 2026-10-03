@@ -1,5 +1,6 @@
 import { CheckIcon, CornerDownLeftIcon, LoaderIcon } from "lucide-react";
-import type { FC } from "react";
+import { type FC, useCallback } from "react";
+import PartitionPicker from "@/components/Journal/PartitionPicker";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -53,6 +54,10 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   const justSaved = useEditorSelector((s) => s.ui.justSaved);
   const isUploading = useEditorSelector((s) => s.ui.isLoading.uploading);
   const location = useEditorSelector((s) => s.metadata.location);
+  const partitionId = useEditorSelector((s) => s.metadata.journalPartitionId ?? "");
+  const suspended = useEditorSelector((s) => s.metadata.journalPartitionSuspended ?? false);
+  const syncEnabled = useEditorSelector((s) => s.metadata.journalSyncEnabled ?? false);
+  const syncChange = useCallback((enabled: boolean) => dispatch(actions.setMetadata({ journalSyncEnabled: enabled })), [actions, dispatch]);
   const visibility = useEditorSelector((s) => s.metadata.visibility);
   // The save transaction is in flight or its confirmation is holding the
   // editor open; either way the toolbar is frozen.
@@ -66,7 +71,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   // The verb names what the host does with the memo: an existing memo is
   // updated, a reply becomes a comment, and a new memo is simply saved. A memo
   // is stored with a visibility, not posted, so messaging verbs stay out.
-  const commitLabel = memoName ? t("common.update") : parentMemoName ? t("editor.comment") : t("editor.save");
+  const commitLabel = syncEnabled ? "保存并同步" : memoName ? t("common.update") : parentMemoName ? t("editor.comment") : t("editor.save");
 
   const handleLocationChange = (next?: Location) => {
     dispatch(actions.setMetadata({ location: next }));
@@ -106,13 +111,26 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
           viewToggles={viewToggles}
           onInsertImages={onInsertImages}
         />
-        <AudienceMenu
-          value={visibility}
-          space={space}
-          onChange={handleVisibilityChange}
-          onSpaceChange={canChooseSpace ? handleSpaceChange : undefined}
-          disabled={committing}
-        />
+        {!parentMemoName && (
+          <PartitionPicker
+            value={partitionId}
+            suspended={suspended}
+            onChange={(value) =>
+              dispatch(actions.setMetadata({ journalPartitionId: value, journalPartitionSuspended: false, journalPartitionExplicit: true }))
+            }
+            onSyncChange={syncChange}
+            disabled={committing}
+          />
+        )}
+        {Boolean(space) && (
+          <AudienceMenu
+            value={visibility}
+            space={space}
+            onChange={handleVisibilityChange}
+            onSpaceChange={canChooseSpace ? handleSpaceChange : undefined}
+            disabled={committing}
+          />
+        )}
       </div>
 
       <div className="flex shrink-0 flex-row items-center justify-end gap-1">

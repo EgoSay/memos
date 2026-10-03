@@ -1,12 +1,15 @@
+import { Code, ConnectError } from "@connectrpc/connect";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { toast } from "react-hot-toast";
+import { memoServiceClient } from "@/connect";
 import { useNewMemo } from "@/contexts/NewMemoContext";
 import { attachmentKeys } from "@/hooks/useAttachmentQueries";
 import { memoKeys } from "@/hooks/useMemoQueries";
 import { userKeys } from "@/hooks/useUserQueries";
 import { handleError } from "@/lib/error";
-import type { Visibility } from "@/types/proto/api/v1/memo_service_pb";
+import { journalDrafts } from "@/lib/journal-drafts";
+import type { Memo, Visibility } from "@/types/proto/api/v1/memo_service_pb";
 import { useTranslate } from "@/utils/i18n";
 import { errorService, memoService, validationService } from "../services";
 import { useEditorContext } from "../state";
@@ -15,6 +18,7 @@ import { useEditorContext } from "../state";
 const SAVED_CONFIRMATION_MS = 900;
 
 interface UseMemoSaveOptions {
+  owner?: string;
   memoName?: string;
   parentMemoName?: string;
   defaultSpace?: string;
@@ -22,6 +26,7 @@ interface UseMemoSaveOptions {
   defaultCreateTime?: Date;
   discardDraft: () => void;
   onConfirm?: (memoName: string) => void;
+  onConflict?: (latest: Memo) => void;
   onCancel?: () => void;
 }
 
@@ -31,6 +36,7 @@ interface UseMemoSaveOptions {
  * triggered by the toolbar or the editor keyboard shortcut.
  */
 export function useMemoSave({
+  owner,
   memoName,
   parentMemoName,
   defaultSpace,
@@ -38,6 +44,7 @@ export function useMemoSave({
   defaultCreateTime,
   discardDraft,
   onConfirm,
+  onConflict,
   onCancel,
 }: UseMemoSaveOptions): () => Promise<void> {
   const t = useTranslate();
@@ -66,6 +73,8 @@ export function useMemoSave({
         onCancel?.();
         return;
       }
+
+      if (result.syncError) toast.error(result.syncError, { duration: 7000 });
 
       // Prevent the autosave unmount flush from restoring the saved draft.
       discardDraft();
@@ -111,6 +120,33 @@ export function useMemoSave({
       }
       onConfirm?.(result.memoName);
     } catch (error) {
+      const code = ConnectError.from(error).code;
+      if (code === Code.Aborted && memoName && onConflict) {
+        try {
+          onConflict(await memoServiceClient.getMemo({ name: memoName }));
+        } catch {
+          // The current editor and durable draft remain intact even when the
+          // latest version cannot be fetched for comparison.
+        }
+      }
+      if (
+        owner &&
+        state.clientId &&
+        !parentMemoName &&
+        (!navigator.onLine || code === Code.Unavailable || code === Code.DeadlineExceeded)
+      ) {
+        try {
+          await journalDrafts.save(`pending:${owner}:${state.clientId}`, owner, state, { memoName, space: defaultSpace }, "pending");
+          discardDraft();
+          dispatch(actions.reset());
+          toast.success("已保存在此设备，联网后同步。正文和原文件会一起保留。");
+          onCancel?.();
+          return;
+        } catch {
+          toast.error("此设备未能保存，输入仍在页面中。请复制文字并保留原文件后重试。");
+          return;
+        }
+      }
       handleError(error, toast.error, {
         context: "Failed to save memo",
         fallbackMessage: errorService.getErrorMessage(error),
@@ -121,6 +157,7 @@ export function useMemoSave({
     }
   }, [
     actions,
+    owner,
     defaultCreateTime,
     defaultSpace,
     defaultVisibility,
@@ -131,6 +168,7 @@ export function useMemoSave({
     memoName,
     onCancel,
     onConfirm,
+    onConflict,
     parentMemoName,
     queryClient,
     t,

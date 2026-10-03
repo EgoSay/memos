@@ -30,6 +30,7 @@ const MemoSidebarRegistration = ({
   from,
   commentCount,
   readonly,
+  privateDiary,
   onEdit,
   onCommentsOpen,
   onCommentCreate,
@@ -42,6 +43,7 @@ const MemoSidebarRegistration = ({
   from: string;
   commentCount?: number;
   readonly: boolean;
+  privateDiary: boolean;
   onEdit: () => void;
   onCommentsOpen: () => void;
   onCommentCreate: () => void;
@@ -58,9 +60,10 @@ const MemoSidebarRegistration = ({
       from,
       commentCount,
       readonly,
+      privateDiary,
       onEdit,
-      onCommentsOpen,
-      onCommentCreate,
+      onCommentsOpen: privateDiary ? undefined : onCommentsOpen,
+      onCommentCreate: privateDiary ? undefined : onCommentCreate,
       onShareImageOpen,
     });
   }, [
@@ -75,6 +78,7 @@ const MemoSidebarRegistration = ({
     parentStatus,
     onParentRetry,
     readonly,
+    privateDiary,
     setMemoDetail,
   ]);
 
@@ -111,6 +115,7 @@ const MemoDetail = () => {
   const { data: memoFromShare, error: shareError, isLoading: shareLoading } = useSharedMemo(shareToken ?? "", { enabled: isShareMode });
 
   const memo = isShareMode ? memoFromShare : memoFromDirect;
+  const privateDiary = !isShareMode && Boolean(currentUser && memo?.creator === currentUser.name && !memo.parent && !memo.space);
   const error = isShareMode ? shareError : directError;
   const isLoading = isShareMode ? shareLoading : directLoading;
   const hasExplicitOrigin =
@@ -162,7 +167,7 @@ const MemoDetail = () => {
     hasNextPage: hasNextComments,
     isFetchingNextPage: isFetchingNextComments,
   } = useInfiniteMemoComments(memoName, {
-    enabled: !isShareMode && !!memo,
+    enabled: !isShareMode && !privateDiary && !!memo,
   });
   const commentCount = memo ? Math.max(computeCommentAmount(memo), comments.length) : 0;
 
@@ -229,8 +234,9 @@ const MemoDetail = () => {
           parentStatus={parentStatus}
           onParentRetry={handleParentRetry}
           from={parentPage}
-          commentCount={isShareMode ? undefined : commentCount}
+          commentCount={isShareMode || privateDiary ? undefined : commentCount}
           readonly={isShareMode}
+          privateDiary={privateDiary}
           onEdit={handleEdit}
           onCommentsOpen={handleCommentsOpen}
           onCommentCreate={handleCommentCreate}
@@ -261,15 +267,16 @@ const MemoDetail = () => {
               key={displayMemo.name}
               memo={displayMemo}
               compact={false}
+              privateDiary={privateDiary}
               parentPage={parentPage}
               shareImageDialogOpen={shareImageDialogOpen}
-              showCreator
+              showCreator={!privateDiary}
               showVisibility
               showPinned
               showSpace
               onShareImageDialogOpenChange={setShareImageDialogOpen}
             />
-            {!isShareMode && (
+            {!isShareMode && !privateDiary && (
               <MemoCommentSection
                 ref={commentSectionRef}
                 memo={displayMemo}

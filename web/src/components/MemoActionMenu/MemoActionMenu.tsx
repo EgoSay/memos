@@ -16,6 +16,8 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import JournalRecordActions from "@/components/JournalRecordActions";
+import JournalReviewActions from "@/components/JournalReviewActions";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -38,7 +40,7 @@ import type { MemoActionMenuProps } from "./types";
  * The memo's action menu, in order of how often each action is reached for:
  * open, edit and pin first; then archive, tasks and the Copy submenu; Delete last.
  * A memo's Space is changed in the editor, not here. An archived memo offers
- * only Restore and Delete, and a viewer only Open and Copy.
+ * Restore and private record tools, and a viewer only Open and Copy.
  */
 const MemoActionMenu = (props: MemoActionMenuProps) => {
   const { memo, parentPage, readonly } = props;
@@ -105,9 +107,9 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
   );
 
   const deleteItem = (
-    <DropdownMenuItem variant="destructive" onClick={handleDeleteMemoClick}>
+    <DropdownMenuItem variant="destructive" onClick={isComment ? handleDeleteMemoClick : confirmDeleteMemo}>
       <TrashIcon />
-      {t("common.delete")}
+      {isComment ? t("common.delete") : "移到最近删除"}
     </DropdownMenuItem>
   );
 
@@ -128,6 +130,8 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
             <ArchiveRestoreIcon />
             {t("common.restore")}
           </DropdownMenuItem>
+          <JournalRecordActions name={memo.name} includeDelete={false} />
+          <JournalReviewActions name={memo.name} />
           <DropdownMenuSeparator />
           {deleteItem}
         </>
@@ -170,6 +174,12 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
           ))}
         {copySubmenu}
 
+        {!isComment && (
+          <>
+            <JournalRecordActions name={memo.name} includeDelete={false} />
+            <JournalReviewActions name={memo.name} />
+          </>
+        )}
         <DropdownMenuSeparator />
         {deleteItem}
       </>

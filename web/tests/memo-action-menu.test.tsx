@@ -64,9 +64,9 @@ describe("MemoActionMenu", () => {
 
   it("orders an owner's memo actions and puts Delete last, with no Move entry", async () => {
     await openMenu(memoOf({ space: "spaces/work" }));
-    expect(menuItemLabels()).toEqual(["common.open", "common.edit", "common.pin", "common.archive", "common.copy", "common.delete"]);
+    expect(menuItemLabels()).toEqual(["common.open", "common.edit", "common.pin", "common.archive", "common.copy", "移到最近删除"]);
     const separators = screen.getAllByRole("separator");
-    expect(separators[separators.length - 1].nextElementSibling).toBe(screen.getByRole("menuitem", { name: "common.delete" }));
+    expect(separators[separators.length - 1].nextElementSibling).toBe(screen.getByRole("menuitem", { name: "移到最近删除" }));
   });
 
   it("offers Unpin on a pinned memo", async () => {
@@ -119,7 +119,7 @@ describe("MemoActionMenu", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "common.more" }));
     await screen.findByRole("menuitem", { name: "common.restore" });
-    expect(menuItemLabels()).toEqual(["common.restore", "common.delete"]);
+    expect(menuItemLabels()).toEqual(["common.restore", "移到最近删除"]);
   });
 
   it("gives a viewer Open and Copy only", async () => {
@@ -166,3 +166,6 @@ describe("MemoActionMenu", () => {
     expect(await screen.findByRole("menuitem", { name: "common.pin" })).toBeInTheDocument();
   });
 });
+
+vi.mock("@/components/JournalRecordActions", () => ({ default: () => null }));
+vi.mock("@/components/JournalReviewActions", () => ({ default: () => null }));

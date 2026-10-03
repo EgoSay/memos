@@ -294,7 +294,7 @@ func TestImportMemoExportIntoAnotherAccount(t *testing.T) {
 	archived := byContent["Old note"]
 	require.NotNil(t, archived)
 	require.Equal(t, store.Archived, archived.RowStatus)
-	require.Equal(t, store.Protected, archived.Visibility)
+	require.Equal(t, store.Private, archived.Visibility, "imported history is private by default")
 
 	attachments, err := ts.Store.ListAttachments(ctx, &store.FindAttachment{MemoID: &parent.ID})
 	require.NoError(t, err)
@@ -381,6 +381,7 @@ func TestImportMemoExportConflictPolicies(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, "# Whiteboard\n\nSee the photo. No trailing newline", restored.Content)
 		require.True(t, restored.Pinned)
+		require.Equal(t, store.Private, restored.Visibility, "imported replacements never revive an old public audience")
 		require.Equal(t, mustTime(t, "2026-03-02T14:20:47Z").Unix(), restored.UpdatedTs)
 		attachments, err := ts.Store.ListAttachments(ctx, &store.FindAttachment{MemoID: &restored.ID})
 		require.NoError(t, err)

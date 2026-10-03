@@ -6,11 +6,13 @@ import { useLocalStorage } from "@/hooks";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { cn } from "@/lib/utils";
 import { InstanceSetting_Key } from "@/types/proto/api/v1/instance_service_pb";
+import { type Memo, Visibility } from "@/types/proto/api/v1/memo_service_pb";
 import { useTranslate } from "@/utils/i18n";
-import { convertVisibilityFromString } from "@/utils/memo";
 import { canManageMemo } from "@/utils/user";
 import { AudioRecorderPanel, EditorContent, EditorMetadata, FocusModeOverlay, TimestampPopover } from "./components";
 import { EditorSuggestions } from "./components/EditorSuggestions";
+import { PendingRecords } from "./components/PendingRecords";
+import { RecordConflict } from "./components/RecordConflict";
 import { FOCUS_MODE_STYLES, FORMATTING_TOOLBAR_STORAGE_KEY } from "./constants";
 import type { EditorFileOrigin } from "./Editor/extensions";
 import {
@@ -25,6 +27,7 @@ import {
   useMemoInit,
   useMemoSave,
 } from "./hooks";
+import { useDurableDraft } from "./hooks/useDurableDraft";
 import { cacheService, errorService, transcriptionService } from "./services";
 import { EditorProvider, useEditorContext, useEditorSelector } from "./state";
 import { EditorToolbar, FormattingToolbar } from "./Toolbar";
@@ -75,6 +78,8 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
   const { aiSetting, fetchSetting } = useInstance();
   const [isAudioRecorderOpen, setIsAudioRecorderOpen] = useState(false);
   const [isTranscribingAudio, setIsTranscribingAudio] = useState(false);
+  const [transcriptionCandidate, setTranscriptionCandidate] = useState<string>();
+  const [conflict, setConflict] = useState<Memo>();
   const { createBlobUrl } = useBlobUrls();
   const saveMediaMetadata = userGeneralSetting?.saveMediaMetadata ?? false;
   const inlineImageUpload = useInlineImageUpload(editorRef);
@@ -97,13 +102,14 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
   }, [aiSetting.providers, aiSetting.transcription?.providerId]);
 
   // Get default visibility from user settings
-  const defaultVisibility = userGeneralSetting?.memoVisibility ? convertVisibilityFromString(userGeneralSetting.memoVisibility) : undefined;
-  const editorCacheKey = cacheService.key(currentUser?.name ?? "", cacheKey);
+  const defaultVisibility = Visibility.PRIVATE;
+  const durableCacheKey = memoName ? `edit:${memoName}` : cacheKey;
+  const editorCacheKey = cacheService.key(currentUser?.name ?? "", durableCacheKey);
 
   const { isInitialized } = useMemoInit({
     editorRef,
     memo,
-    cacheKey,
+    cacheKey: durableCacheKey,
     username: currentUser?.name ?? "",
     autoFocus,
     defaultVisibility,
@@ -111,14 +117,20 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
     defaultLocation,
     canChooseSpace,
   });
-  const isDraftCacheEnabled = !memo;
+  const isDraftCacheEnabled = true;
+  const hasInitializedTimestamp = useRef(false);
 
   useEffect(() => {
     onSavingChange?.(isSaving);
   }, [isSaving, onSavingChange]);
 
   // Auto-save content to localStorage (subscribes to the store internally).
-  const { discardDraft } = useAutoSave(currentUser?.name ?? "", cacheKey, isInitialized && isDraftCacheEnabled);
+  const { discardDraft: discardLegacyDraft } = useAutoSave(currentUser?.name ?? "", durableCacheKey, isInitialized && isDraftCacheEnabled);
+  const durable = useDurableDraft(currentUser?.name ?? "", editorCacheKey, isInitialized);
+  const discardDraft = () => {
+    discardLegacyDraft();
+    durable.discard();
+  };
 
   const { containerRef: editorContainerRef, placeholderHeight } = useFocusMode(isFocusMode);
 
@@ -130,6 +142,10 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
   useEffect(() => {
     if (memo) return;
     if (!isInitialized) return;
+    if (!hasInitializedTimestamp.current) {
+      hasInitializedTimestamp.current = true;
+      return;
+    }
     dispatch(
       actions.setTimestamps({
         createTime: defaultCreateTime,
@@ -155,12 +171,13 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
     editor.scrollToCursor();
   }, []);
 
-  const { transcribeAttachment, transcribingAttachment } = useAttachmentTranscription(insertTranscribedText);
+  const { transcribeAttachment, transcribingAttachment } = useAttachmentTranscription(setTranscriptionCandidate);
 
   const handleTranscribeRecordedAudio = useCallback(
     async (localFile: LocalFile) => {
+      // Transcription never replaces the recording, including on success.
+      dispatch(actions.addLocalFile(localFile));
       if (!canTranscribe) {
-        dispatch(actions.addLocalFile(localFile));
         setIsTranscribingAudio(false);
         setIsAudioRecorderOpen(false);
         return;
@@ -169,23 +186,21 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
       try {
         const text = (await transcriptionService.transcribeFile(localFile.file)).trim();
         if (!text) {
-          dispatch(actions.addLocalFile(localFile));
           toast.error(t("editor.audio-recorder.transcribe-empty"));
           return;
         }
 
-        insertTranscribedText(text);
+        setTranscriptionCandidate(text);
         toast.success(t("editor.audio-recorder.transcribe-success"));
       } catch (error) {
         console.error(error);
         toast.error(errorService.getErrorMessage(error) || t("editor.audio-recorder.transcribe-error"));
-        dispatch(actions.addLocalFile(localFile));
       } finally {
         setIsTranscribingAudio(false);
         setIsAudioRecorderOpen(false);
       }
     },
-    [actions, canTranscribe, dispatch, insertTranscribedText, t],
+    [actions, canTranscribe, dispatch, t],
   );
 
   const audioRecorder = useAudioRecorder({
@@ -280,7 +295,8 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
     (files: File[], placement: { inline: false } | { inline: true; position?: number }) => {
       if (getState().ui.isLoading.saving) return;
       const localFiles = toLocalFiles(files, { createBlobUrl, saveMediaMetadata });
-      const { inline, attachments } = placement.inline ? splitInlineLocalFiles(localFiles) : { inline: [], attachments: localFiles };
+      const { inline, attachments } =
+        placement.inline && navigator.onLine ? splitInlineLocalFiles(localFiles) : { inline: [], attachments: localFiles };
       attachments.forEach((file) => dispatch(actions.addLocalFile(file)));
       if (placement.inline) inlineImageUpload.insertLocalImages(inline, placement.position);
     },
@@ -331,6 +347,7 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
       };
 
   const handleSave = useMemoSave({
+    owner: currentUser?.name,
     memoName,
     parentMemoName,
     defaultSpace,
@@ -338,12 +355,21 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
     defaultCreateTime,
     discardDraft,
     onConfirm,
+    onConflict: setConflict,
     onCancel: onCancel ? handleCancel : undefined,
   });
+
+  if (!isInitialized)
+    return (
+      <div className="min-h-28 w-full rounded-lg border p-4 text-sm text-muted-foreground" role="status">
+        正在读取此设备的草稿…
+      </div>
+    );
 
   return (
     <>
       <FocusModeOverlay isActive={isFocusMode} onToggle={handleToggleFocusMode} />
+      {conflict && <RecordConflict latest={conflict} onClose={() => setConflict(undefined)} />}
 
       {/*
         Layout structure:
@@ -396,6 +422,43 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
           />
         )}
 
+        {transcriptionCandidate !== undefined && (
+          <div className="w-full rounded border p-3 space-y-2">
+            <label htmlFor="transcription-candidate" className="text-sm">
+              转写候选文字 · 原录音会保留
+            </label>
+            <textarea
+              id="transcription-candidate"
+              className="w-full min-h-24 rounded border p-2"
+              value={transcriptionCandidate}
+              onChange={(event) => setTranscriptionCandidate(event.target.value)}
+            />
+            <div className="flex gap-3 text-sm">
+              <button
+                type="button"
+                onClick={() => {
+                  insertTranscribedText(transcriptionCandidate);
+                  setTranscriptionCandidate(undefined);
+                }}
+              >
+                加入正文
+              </button>
+              <button type="button" onClick={() => setTranscriptionCandidate(undefined)}>
+                不用这段文字
+              </button>
+            </div>
+          </div>
+        )}
+        <div role="status" className="text-xs text-muted-foreground">
+          {durable.status === "saving"
+            ? "正在保存草稿…"
+            : durable.status === "saved"
+              ? "草稿已保存在此设备"
+              : durable.status === "failed"
+                ? "此设备未能保存草稿，请保留页面或复制内容。"
+                : ""}
+        </div>
+        {!memoName && !parentMemoName && <PendingRecords owner={currentUser?.name ?? ""} draftKey={editorCacheKey} />}
         {/* Metadata and toolbar grouped together at bottom */}
         <div className="w-full flex flex-col gap-2">
           <EditorMetadata

@@ -59,6 +59,16 @@ func insertPostgresAttachment(ctx context.Context, executor postgresAttachmentQu
 	}
 	args := []any{create.UID, create.Filename, create.Blob, create.Type, create.Size, create.CreatorID, create.MemoID, storageType, create.Reference, payloadString}
 
+	if create.CreatedTs != 0 {
+		fields = append(fields, "created_ts")
+		args = append(args, create.CreatedTs)
+	}
+
+	if create.UpdatedTs != 0 {
+		fields = append(fields, "updated_ts")
+		args = append(args, create.UpdatedTs)
+	}
+
 	stmt := "INSERT INTO attachment (" + strings.Join(fields, ", ") + ") VALUES (" + placeholders(len(args)) + ") RETURNING id, created_ts, updated_ts"
 	if err := executor.QueryRowContext(ctx, stmt, args...).Scan(&create.ID, &create.CreatedTs, &create.UpdatedTs); err != nil {
 		return nil, err

@@ -106,17 +106,19 @@ type FindMemoPayload struct {
 }
 
 type UpdateMemo struct {
-	ID         int32
-	UID        *string
-	CreatedTs  *int64
-	UpdatedTs  *int64
-	RowStatus  *RowStatus
-	Content    *string
-	Visibility *Visibility
-	Pinned     *bool
-	Payload    *storepb.MemoPayload
-	SpaceID    *int32
-	ClearSpace bool
+	// ExpectedRecordHash enables full record CAS in a MemoMutation transaction.
+	ExpectedRecordHash string
+	ID                 int32
+	UID                *string
+	CreatedTs          *int64
+	UpdatedTs          *int64
+	RowStatus          *RowStatus
+	Content            *string
+	Visibility         *Visibility
+	Pinned             *bool
+	Payload            *storepb.MemoPayload
+	SpaceID            *int32
+	ClearSpace         bool
 	// Policy is set by transport-facing author mutations. Drivers revalidate it
 	// in the same transaction as the update; nil preserves trusted internal and
 	// migration callers.
@@ -243,6 +245,9 @@ func (s *Store) GetMemo(ctx context.Context, find *FindMemo) (*Memo, error) {
 }
 
 func (s *Store) UpdateMemo(ctx context.Context, update *UpdateMemo) error {
+	if update.ExpectedRecordHash != "" {
+		return errors.New("record version checks require ApplyMemoMutation")
+	}
 	if update.UID != nil && !identifier.UIDMatcher.MatchString(*update.UID) {
 		return errors.New("invalid uid")
 	}

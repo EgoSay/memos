@@ -71,6 +71,8 @@ export const editorActions = {
     payload: id,
   }),
 
+  restoreDraft: (payload: EditorState): EditorAction => ({ type: "RESTORE_DRAFT", payload }),
+
   reset: (): EditorAction => ({
     type: "RESET",
   }),

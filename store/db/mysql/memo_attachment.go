@@ -73,6 +73,16 @@ func (d *DB) ApplyMemoMutation(ctx context.Context, mutation *store.MemoMutation
 	if creatorID != mutation.MemoCreatorID || content != mutation.ExpectedMemoContent {
 		return errors.Wrap(store.ErrMemoMutationConflict, "memo changed while applying mutation")
 	}
+	if mutation.ExpectedRecordHash != "" {
+		snapshot, err := readMySQLMemoRecordSnapshot(ctx, tx, mutation.MemoID)
+		if err != nil {
+			return err
+		}
+		if snapshot.Hash() != mutation.ExpectedRecordHash {
+			return errors.Wrap(store.ErrMemoMutationConflict, "record metadata or attachments changed while applying mutation")
+		}
+	}
+
 	removedAttachments, err := listMySQLAttachmentsByIDs(ctx, tx, mutation.RemovedAttachmentIDs)
 	if err != nil {
 		return errors.Wrap(err, "failed to read removed attachments")

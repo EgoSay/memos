@@ -2,7 +2,17 @@ import { matchPath } from "react-router-dom";
 import { isCalendarRoute, isMemoScopeRoute, type MemoScope, resolveMemoScope } from "@/lib/memo-views";
 import { getCollectionHomePath, ROUTES, resolveCollectionRoute } from "@/router/routes";
 
-export type SidebarRouteKind = MemoScope | "views" | "calendar" | "map" | "attachments" | "inbox" | "settings" | "memo" | "common";
+export type SidebarRouteKind =
+  | MemoScope
+  | "views"
+  | "calendar"
+  | "map"
+  | "attachments"
+  | "inbox"
+  | "settings"
+  | "memo"
+  | "common"
+  | "journal";
 
 export type RouteSearchScope = "route-collection" | "user-collection" | "all";
 
@@ -14,6 +24,7 @@ export interface RouteActionPolicy {
 
 export const getSidebarRouteKind = (path: string): SidebarRouteKind => {
   const normalizedPath = resolveCollectionRoute(path).pathname;
+  if (normalizedPath === ROUTES.JOURNAL || normalizedPath.startsWith(`${ROUTES.JOURNAL}/`)) return "journal";
   if (isMemoScopeRoute(normalizedPath)) return resolveMemoScope(normalizedPath);
   if (matchPath(ROUTES.VIEWS, normalizedPath)) return "views";
   if (isCalendarRoute(normalizedPath)) return "calendar";
@@ -34,6 +45,7 @@ export const getRouteActionPolicy = (path: string, search = ""): RouteActionPoli
 
   if (kind === "home" || kind === "explore") return { searchScope: "route-collection" };
   if (kind === "archived") return { searchScope: "user-collection" };
+  if (kind === "journal") return { searchScope: "user-collection", searchDestination: ROUTES.HOME };
 
   // Calendar and attachments browse the route collection but are not memo lists
   // themselves, so a search leaves for the same collection's Home.

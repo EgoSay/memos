@@ -65,6 +65,7 @@ describe("memo editor relation updates", () => {
     await memoService.save(state, { space: "spaces/product" });
 
     expect(clients.createMemo).toHaveBeenCalledWith({
+      memoId: state.clientId,
       memo: expect.objectContaining({ content: "Roadmap", space: "spaces/product" }),
     });
   });
@@ -74,9 +75,15 @@ describe("memo editor relation updates", () => {
     state.content = "Draft";
     state.metadata = { ...state.metadata, space: "spaces/work" };
     await memoService.save(state, {});
-    expect(clients.createMemo).toHaveBeenLastCalledWith({ memo: expect.objectContaining({ space: "spaces/work" }) });
+    expect(clients.createMemo).toHaveBeenLastCalledWith({
+      memoId: state.clientId,
+      memo: expect.objectContaining({ space: "spaces/work" }),
+    });
     await memoService.save(state, { space: "spaces/current" });
-    expect(clients.createMemo).toHaveBeenLastCalledWith({ memo: expect.objectContaining({ space: "spaces/current" }) });
+    expect(clients.createMemo).toHaveBeenLastCalledWith({
+      memoId: state.clientId,
+      memo: expect.objectContaining({ space: "spaces/current" }),
+    });
   });
 
   it("does not inherit the selected Space when creating a comment", async () => {

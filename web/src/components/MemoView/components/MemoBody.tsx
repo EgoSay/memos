@@ -26,7 +26,7 @@ const BlurOverlay: React.FC<{ onClick?: () => void }> = ({ onClick }) => {
   );
 };
 
-const MemoBody: React.FC<MemoBodyProps> = ({ compact }) => {
+const MemoBody: React.FC<MemoBodyProps> = ({ compact, privateDiary }) => {
   const { memo, parentPage, showBlurredContent, blurred, readonly, openEditor, openPreview, toggleBlurVisibility } = useMemoViewContext();
 
   const { handleMemoContentClick, handleMemoContentDoubleClick } = useMemoHandlers({ readonly, openEditor, openPreview });
@@ -75,7 +75,7 @@ const MemoBody: React.FC<MemoBodyProps> = ({ compact }) => {
         {blurred && !showBlurredContent && <BlurOverlay onClick={toggleBlurVisibility} />}
       </div>
 
-      <MemoReactionListView memo={memo} reactions={memo.reactions} />
+      {!privateDiary && <MemoReactionListView memo={memo} reactions={memo.reactions} />}
     </div>
   );
 };

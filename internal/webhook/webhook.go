@@ -106,6 +106,8 @@ type Request struct {
 	Label string
 	// SigningSecret enables Standard Webhooks HMAC-SHA256 signing when non-empty.
 	SigningSecret string
+	// MessageID identifies a durable event across retries. Empty generates a new ID.
+	MessageID string
 	// Payload is the value encoded as the JSON request body.
 	Payload any
 }
@@ -139,14 +141,51 @@ func GenerateSigningSecret() (string, error) {
 
 // Post delivers the request synchronously and returns the receiver's verdict.
 func Post(requestPayload *Request) error {
+	return PostContext(context.Background(), requestPayload)
+}
+
+// PostContext delivers a legacy webhook with cancellation support.
+func PostContext(ctx context.Context, requestPayload *Request) error {
+	resp, err := doRequest(ctx, requestPayload, safeClient)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	b, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	if err != nil {
+		return errors.Wrap(err, "failed to read webhook response")
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return errors.Errorf("webhook returned HTTP %d", resp.StatusCode)
+	}
+	if len(bytes.TrimSpace(b)) == 0 {
+		return nil
+	}
+	response := &struct {
+		Code int `json:"code"`
+	}{}
+	if err := json.Unmarshal(b, response); err != nil {
+		return errors.Wrap(err, "failed to unmarshal webhook response")
+	}
+	if response.Code != 0 {
+		return errors.Errorf("webhook returned application code %d", response.Code)
+	}
+	return nil
+}
+
+func doRequest(ctx context.Context, requestPayload *Request, client *http.Client) (*http.Response, error) {
+	if requestPayload == nil {
+		return nil, errors.New("webhook request is required")
+	}
 	body, err := json.Marshal(requestPayload.Payload)
 	if err != nil {
-		return errors.Wrapf(err, "failed to marshal webhook request to %s", requestPayload.URL)
+		return nil, errors.Wrap(err, "failed to marshal webhook request")
 	}
 
-	req, err := http.NewRequest("POST", requestPayload.URL, bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(ctx, "POST", requestPayload.URL, bytes.NewBuffer(body))
 	if err != nil {
-		return errors.Wrapf(err, "failed to construct webhook request to %s", requestPayload.URL)
+		return nil, errors.New("failed to construct webhook request")
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -154,10 +193,13 @@ func Post(requestPayload *Request) error {
 	if requestPayload.SigningSecret != "" {
 		key, err := resolveSigningKey(requestPayload.SigningSecret)
 		if err != nil {
-			return errors.Wrapf(err, "failed to derive signing key for webhook to %s", requestPayload.URL)
+			return nil, errors.Wrap(err, "failed to derive webhook signing key")
 		}
 
-		msgID := "msg_" + uuid.NewV4().String()
+		msgID := requestPayload.MessageID
+		if msgID == "" {
+			msgID = "msg_" + uuid.NewV4().String()
+		}
 		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 
 		mac := hmac.New(sha256.New, key)
@@ -170,34 +212,15 @@ func Post(requestPayload *Request) error {
 		req.Header.Set("webhook-signature", "v1,"+signature)
 	}
 
-	resp, err := safeClient.Do(req)
+	if requestPayload.MessageID != "" {
+		req.Header.Set("Idempotency-Key", requestPayload.MessageID)
+	}
+	resp, err := client.Do(req)
 	if err != nil {
-		return errors.Wrapf(err, "failed to post webhook to %s", requestPayload.URL)
+		// net/http errors contain the destination URL, which may include credentials.
+		return nil, errors.Wrap(err, "webhook request failed")
 	}
-	defer resp.Body.Close()
-
-	b, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
-	if err != nil {
-		return errors.Wrapf(err, "failed to read webhook response from %s", requestPayload.URL)
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return errors.Errorf("failed to post webhook %s, status code: %d", requestPayload.URL, resp.StatusCode)
-	}
-
-	response := &struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
-	}{}
-	if err := json.Unmarshal(b, response); err != nil {
-		return errors.Wrapf(err, "failed to unmarshal webhook response from %s", requestPayload.URL)
-	}
-
-	if response.Code != 0 {
-		return errors.Errorf("receive error code sent by webhook server, code %d, msg: %s", response.Code, response.Message)
-	}
-
-	return nil
+	return resp, nil
 }
 
 // PostAsync enqueues the request for bounded asynchronous delivery and does

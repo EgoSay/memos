@@ -174,3 +174,11 @@ Services are pure functions — easy to unit test without React.
 const state = createInitialState(); // from state/types.ts
 const result = await memoService.save(state, { memoName: 'memos/123' });
 ```
+
+## Personal journal durability
+
+`useDurableDraft` persists text, the original edit baseline and selected `File` bytes to owner-scoped IndexedDB entries. `journal-drafts.ts` serializes writes per key and reports success only after the transaction commits. Cleared or saved drafts are removed in that same ordering; unavailable/quota-exhausted storage never claims a successful local save. Explicit offline saves use a separate pending queue. `PendingRecords` resumes those saves with stable memo/attachment IDs and exposes cold-start offline drafts without replacing an occupied editor.
+
+The editor defaults to private and a fresh personal partition selection. Files are uploaded before the memo transaction and partition delivery is committed only after the entire memo has saved. Recording always keeps the audio file; transcription is a separately editable candidate and only enters the body after acceptance.
+
+Edits compare the originally opened record, including date, location and attachments. The client sends `X-Memos-Expected-Record-Sha256`; `lib/journal-record-version.ts` and `store.MemoRecordSnapshot.Hash` use a shared UTF-8 length-prefixed tuple with IEEE754 coordinate bits. The database drivers recheck that complete tuple under the memo mutation transaction, including for metadata-only changes. A conflict retains the local draft and opens a comparison; accepting a new baseline is an explicit action, with another comparison at save time. A shared hash vector and concurrent metadata mutation tests protect the protocol.

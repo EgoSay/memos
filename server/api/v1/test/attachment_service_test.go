@@ -146,7 +146,7 @@ func TestCreateAttachment(t *testing.T) {
 	})
 }
 
-func TestCreateAttachmentCleansSavedBlobWhenStoreCreateFails(t *testing.T) {
+func TestCreateAttachmentRejectsDuplicatesAndCompensatesPolicyFailure(t *testing.T) {
 	ts := NewTestService(t)
 	defer ts.Cleanup()
 	ctx := context.Background()
@@ -186,8 +186,8 @@ func TestCreateAttachmentCleansSavedBlobWhenStoreCreateFails(t *testing.T) {
 			Content:  []byte("must be removed"),
 		},
 	})
-	require.Equal(t, codes.Internal, status.Code(err))
-	require.Contains(t, err.Error(), "failed to create attachment")
+	require.Equal(t, codes.AlreadyExists, status.Code(err))
+	require.Contains(t, err.Error(), "attachment id already exists")
 	_, statErr := os.Stat(filepath.Join(ts.Profile.Data, "assets", "orphan.txt"))
 	require.ErrorIs(t, statErr, os.ErrNotExist)
 	kept, err := os.ReadFile(keptPath)

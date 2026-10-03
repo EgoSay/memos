@@ -41,6 +41,15 @@ func (s *APIV1Service) buildMemoReadContextForViewer(ctx context.Context, memo *
 }
 
 func (s *APIV1Service) checkMemoReadAccess(ctx context.Context, memo *store.Memo) error {
+	if memo != nil {
+		trash, err := s.Store.GetJournalDocument(ctx, memo.CreatorID, "trash", memo.UID)
+		if err != nil {
+			return status.Error(codes.Internal, "failed to check record lifecycle")
+		}
+		if trash != nil {
+			return status.Error(codes.NotFound, "memo not found")
+		}
+	}
 	readContext, err := s.buildMemoReadContext(ctx, memo, nil)
 	if err != nil {
 		return err

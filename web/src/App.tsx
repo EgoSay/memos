@@ -64,7 +64,7 @@ const App = () => {
       <TimelineViewProvider>
         <Outlet />
       </TimelineViewProvider>
-      <ScrollRestoration />
+      <ScrollRestoration getKey={({ pathname, search }) => `${pathname}${search}`} />
     </DirectionProvider>
   );
 };
