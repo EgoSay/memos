@@ -24,6 +24,7 @@ function makeController(opts: { active?: Partial<ActiveFormatState> } = {}) {
     getTags: () => [],
     hasChecklist: () => false,
     insertTag: vi.fn(() => true),
+    startTag: vi.fn(),
     focus: () => {},
     hasFocus: () => false,
     isEmpty: () => true,

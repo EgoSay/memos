@@ -52,6 +52,40 @@ function setup(doc: string) {
   return { v, c: createController(v, {} as never) };
 }
 
+describe("starting a tag from the toolbar", () => {
+  it.each([
+    ["", 0, "#生活"],
+    ["今天散步回来", 4, "今天散步 #生活 回来"],
+    ["今天散步回来", 6, "今天散步回来 #生活"],
+    ["今天散步回来", 0, "#生活 今天散步回来"],
+    ["今天 散步", 3, "今天 #生活 散步"],
+    ["今天\n回来", 2, "今天 #生活\n回来"],
+  ])("keeps subsequent typing in the tag for %s at %i", (doc, cursor, expected) => {
+    const { v, c } = setup(doc);
+    c.setCursor(cursor);
+    c.startTag();
+    const position = c.getCursor();
+    expect(c.getMarkdown().at(position - 1)).toBe("#");
+    v.dispatch(v.state.replaceSelection("生活"));
+    expect(c.getMarkdown()).toBe(expected);
+    expect(c.getTags()).toEqual(["生活"]);
+    v.destroy();
+  });
+
+  it("preserves highlighted text and allows undoing just the tag start", () => {
+    const doc = "今天散步回来";
+    const { v, c } = setup(doc);
+    v.dispatch({ selection: { anchor: 2, head: 4 } });
+    c.startTag();
+    expect(c.getMarkdown()).toBe("今天散步 # 回来");
+    expect(c.getCursor()).toBe(6);
+    expect(undo(v)).toBe(true);
+    expect(c.getMarkdown()).toBe(doc);
+    expect(v.state.selection.main).toMatchObject({ anchor: 2, head: 4 });
+    v.destroy();
+  });
+});
+
 describe("suggested tag insertion", () => {
   it("inserts an undoable tag at the selection head without replacing highlighted text", () => {
     const { v, c } = setup("alpha beta");

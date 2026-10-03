@@ -193,7 +193,7 @@ const expectDefaultNavPill = (pill: HTMLElement, label: string) => {
 
 describe("App sidebar logo", () => {
   beforeEach(() => {
-    authState.currentUser = { name: "users/test" };
+    authState.currentUser = { name: "users/test", username: "test" };
     authState.memoViews = [];
     authState.notifications = [];
     authState.guestCreator = undefined;
@@ -210,15 +210,56 @@ describe("App sidebar logo", () => {
     tagsSectionHook.mockClear();
   });
 
-  it("returns to personal records and voluntary exploration from a legacy collection", () => {
+  it("keeps creator, Space and tag filters when returning from the map to the list", () => {
     render(
       <MemoryRouter initialEntries={["/spaces/product/map?creator=alice&filter=tagSearch%3Awork"]}>
         <AppSidebar />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("link", { name: "记录" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "memo.layout-list" })).toHaveAttribute(
+      "href",
+      "/spaces/product?filter=tagSearch%3Awork&creator=alice",
+    );
     expect(screen.getByRole("link", { name: "随便看看" })).toHaveAttribute("href", "/journal");
     expect(screen.queryByRole("link", { name: "common.explore" })).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["/spaces/product?creator=alice&filter=tagSearch%3Awork", "memo.layout-list"],
+    ["/spaces/product/calendar/2026/10?creator=alice&filter=tagSearch%3Awork", "common.calendar"],
+    ["/spaces/product/map?creator=alice&filter=tagSearch%3Awork", "common.map"],
+  ])("keeps all three original collection views and their filters available on %s", (path, activeLabel) => {
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <AppSidebar />
+      </MemoryRouter>,
+    );
+    const navigation = within(screen.getByRole("navigation", { name: "主要导航" }));
+    expectActiveNavPill(navigation.getByRole("link", { name: activeLabel }), activeLabel);
+    for (const [label, pathname] of [
+      ["memo.layout-list", "/spaces/product"],
+      ["common.calendar", "/spaces/product/calendar"],
+      ["common.map", "/spaces/product/map"],
+    ]) {
+      const link = navigation.getByRole("link", { name: label });
+      const target = new URL(link.getAttribute("href") || "", "https://memos.test");
+      expect(target.pathname).toBe(pathname);
+      expect(target.searchParams.get("filter")).toBe("tagSearch:work");
+      expect(target.searchParams.get("creator")).toBe("alice");
+    }
+    expect(screen.getByText("Tags")).toBeInTheDocument();
+    if (activeLabel !== "memo.layout-list") expect(screen.queryByText("Calendar")).not.toBeInTheDocument();
+  });
+
+  it("carries the owner scope from the personal list to the full calendar and map", () => {
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <AppSidebar />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("link", { name: "common.calendar" })).toHaveAttribute("href", "/calendar?creator=test");
+    expect(screen.getByRole("link", { name: "common.map" })).toHaveAttribute("href", "/map?creator=test");
+    expect(screen.getByRole("button", { name: "memo.view-options" })).toBeInTheDocument();
   });
 
   it("shows the context switcher and opens the global memo editor", () => {
@@ -245,7 +286,7 @@ describe("App sidebar logo", () => {
     expect(compose).toHaveClass("size-7", "rounded-md", "border", "bg-background", "shadow-xs");
     expect(compose).not.toHaveClass("rounded-full");
     expect(header).not.toContainElement(search);
-    expect(search).toHaveClass("min-h-11");
+    expect(search).toHaveClass("h-7", "ms-auto");
     expect(search.querySelector(".lucide-search")).toHaveClass("size-4");
 
     fireEvent.click(search);
@@ -255,7 +296,7 @@ describe("App sidebar logo", () => {
     fireEvent.click(compose);
     expect(globalEditorState.openEditor).toHaveBeenCalledOnce();
     // The Calendar destination is a nav pill; the statistics calendar stays off this route.
-    expect(within(primaryNavigation).getByRole("link", { name: "随便看看" })).toHaveAttribute("href", "/journal");
+    expect(screen.getByRole("link", { name: "随便看看" })).toHaveAttribute("href", "/journal");
     expect(screen.queryByText("Calendar")).not.toBeInTheDocument();
   });
 
@@ -346,14 +387,15 @@ describe("App sidebar logo", () => {
     expect(screen.getByRole("button", { name: "User menu" })).toBeInTheDocument();
   });
 
-  it("keeps legacy attachments reachable without adding another primary destination", () => {
+  it("keeps attachments and the original collection views reachable", () => {
     render(
       <MemoryRouter initialEntries={["/Attachments/"]}>
         <AppSidebar />
       </MemoryRouter>,
     );
     expect(screen.getByRole("heading", { name: "common.attachments" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "记录" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "memo.layout-list" })).toHaveAttribute("href", "/explore");
+    expect(screen.getByRole("link", { name: "common.attachments" })).toHaveAttribute("aria-current", "page");
   });
 
   it("hides the instance-level unused attachment collection in a Space", () => {
@@ -465,8 +507,8 @@ describe("App sidebar logo", () => {
     expect(screen.queryByText("Tags")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "space.switch: common.memos" })).toBeInTheDocument();
     const navigation = within(screen.getByRole("navigation", { name: "主要导航" }));
-    expect(navigation.getByRole("link", { name: "记录" })).toHaveAttribute("href", "/");
-    expect(navigation.getByRole("link", { name: "随便看看" })).toHaveAttribute("href", "/journal");
+    expect(navigation.getByRole("link", { name: "memo.layout-list" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "随便看看" })).toHaveAttribute("href", "/journal");
     expect(screen.queryByRole("link", { name: "common.inbox" })).not.toBeInTheDocument();
     expect(screen.getByRole("contentinfo")).toBeInTheDocument();
   });
@@ -482,8 +524,8 @@ describe("App sidebar logo", () => {
     expect(screen.getByRole("heading", { name: "common.resources", level: 2 })).toBeInTheDocument();
 
     const navigation = within(screen.getByRole("navigation", { name: "主要导航" }));
-    expect(navigation.getByRole("link", { name: "记录" })).not.toHaveAttribute("aria-current");
-    expect(navigation.getByRole("link", { name: "随便看看" })).toHaveAttribute("href", "/journal");
+    expect(navigation.getByRole("link", { name: "memo.layout-list" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "随便看看" })).toHaveAttribute("href", "/journal");
   });
 
   it("uses a visitor sidebar for a guest on a route without contextual content", () => {
@@ -531,9 +573,9 @@ describe("App sidebar logo", () => {
     const views = screen.getByText("common.views");
     expect(calendar.compareDocumentPosition(views) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     const navigation = within(screen.getByRole("navigation", { name: "主要导航" }));
-    expect(navigation.getByRole("link", { name: "记录" })).toHaveAttribute("aria-current", "page");
-    expect(navigation.getByRole("link", { name: "随便看看" })).toHaveAttribute("href", "/journal");
-    expect(navigation.queryByRole("button", { name: "memo.view-options" })).not.toBeInTheDocument();
+    expect(navigation.getByRole("link", { name: "memo.layout-list" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "随便看看" })).toHaveAttribute("href", "/journal");
+    expect(navigation.getByRole("button", { name: "memo.view-options" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "common.tasks" })).not.toBeInTheDocument();
   });
 
@@ -548,10 +590,7 @@ describe("App sidebar logo", () => {
         <AppSidebar />
       </MemoryRouter>,
     );
-    expect(within(screen.getByRole("navigation", { name: "主要导航" })).getByRole("link", { name: "随便看看" })).toHaveAttribute(
-      "href",
-      "/journal",
-    );
+    expect(screen.getByRole("link", { name: "随便看看" })).toHaveAttribute("href", "/journal");
   });
 
   it.each([
@@ -606,15 +645,17 @@ describe("App sidebar logo", () => {
     expect(deleteItem).toHaveAttribute("data-variant", "destructive");
   });
 
-  it("keeps two primary destinations and secondary personal management links", () => {
+  it("restores list, calendar, map and attachments beside optional exploration and management", () => {
     render(
       <MemoryRouter initialEntries={["/attachments"]}>
         <AppSidebar />
       </MemoryRouter>,
     );
     const navigation = within(screen.getByRole("navigation", { name: "主要导航" }));
-    expect(navigation.getAllByRole("link")).toHaveLength(2);
-    expect(navigation.getByRole("link", { name: "记录" })).toHaveAttribute("href", "/");
+    expect(navigation.getAllByRole("link")).toHaveLength(4);
+    expect(navigation.getByRole("link", { name: "memo.layout-list" })).toHaveAttribute("href", "/explore");
+    expect(navigation.getByRole("link", { name: "common.calendar" })).toHaveAttribute("href", "/calendar");
+    expect(navigation.getByRole("link", { name: "common.map" })).toHaveAttribute("href", "/map");
     expect(screen.getByRole("link", { name: "我的分享" })).toHaveAttribute("href", "/journal/shares");
     expect(screen.getByRole("link", { name: "最近删除" })).toHaveAttribute("href", "/journal/trash");
   });
@@ -640,7 +681,7 @@ describe("App sidebar logo", () => {
         <AppSidebar />
       </MemoryRouter>,
     );
-    const home = screen.getByRole("link", { name: "记录" });
+    const home = screen.getByRole("link", { name: "memo.layout-list" });
     expect(home).not.toHaveAttribute("aria-current");
     expect(home).toHaveAttribute("href", "/");
     expect(screen.queryByRole("button", { name: "common.explore" })).not.toBeInTheDocument();

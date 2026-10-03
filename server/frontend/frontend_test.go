@@ -130,11 +130,20 @@ func TestFrontendService_MissingAssetDoesNotFallbackToIndex(t *testing.T) {
 	e := echo.New()
 	NewFrontendService(&profile.Profile{}, testStore).Serve(ctx, e)
 
-	req := httptest.NewRequest(http.MethodGet, "/assets/missing.js", nil)
-	rec := httptest.NewRecorder()
-	e.ServeHTTP(rec, req)
+	for _, method := range []string{http.MethodGet, http.MethodHead} {
+		for _, path := range []string{"/assets/missing.js", "/assets/missing.css", "/missing-logo.png"} {
+			t.Run(method+path, func(t *testing.T) {
+				req := httptest.NewRequest(method, path, nil)
+				rec := httptest.NewRecorder()
+				e.ServeHTTP(rec, req)
 
-	require.Equal(t, http.StatusNotFound, rec.Code)
+				require.Equal(t, http.StatusNotFound, rec.Code)
+				require.Equal(t, "no-store", rec.Header().Get(echo.HeaderCacheControl))
+				require.Equal(t, "no-cache", rec.Header().Get("Pragma"))
+				require.Equal(t, "0", rec.Header().Get("Expires"))
+			})
+		}
+	}
 }
 
 func TestFrontendService_SkipsDynamicRoutes(t *testing.T) {

@@ -47,6 +47,7 @@ const MemoContent = (props: MemoContentProps) => {
           memoName={props.memoName}
           parentPage={props.parentPage}
           compact={Boolean(props.compact)}
+          readonly={props.readonly}
         />
       </div>
     </div>

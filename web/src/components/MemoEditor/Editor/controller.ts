@@ -61,6 +61,22 @@ export function createController(view: EditorView, formatting: FormattingControl
       view.focus();
       return true;
     },
+    startTag: () => {
+      if (view.compositionStarted) return;
+      const { doc, selection } = view.state;
+      const { head } = selection.main;
+      const prefix = head > 0 && !/\s/.test(doc.sliceString(head - 1, head)) ? " " : "";
+      // Keep existing text out of the new tag while typing at a mid-line caret.
+      const suffix = head < doc.length && !/\s/.test(doc.sliceString(head, head + 1)) ? " " : "";
+      view.dispatch({
+        changes: { from: head, insert: `${prefix}#${suffix}` },
+        selection: { anchor: head + prefix.length + 1 },
+        annotations: isolateHistory.of("full"),
+        userEvent: "input",
+        scrollIntoView: true,
+      });
+      view.focus();
+    },
     setMarkdown: (markdown) => {
       view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: markdown } });
     },

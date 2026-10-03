@@ -1,4 +1,7 @@
+import { CheckIcon, ChevronDownIcon, FolderIcon } from "lucide-react";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useJournalPartitions, useJournalPartitionTargets } from "@/hooks/useJournalPartitionQueries";
 
 interface Props {
@@ -15,34 +18,55 @@ export default function PartitionPicker({ value, onChange, onSyncChange, disable
   const hasSync = active.length > 0 && !suspended;
   useEffect(() => {
     onSyncChange?.(hasSync);
-  }, [hasSync, onSyncChange]);
+  }, [value, hasSync, onSyncChange]);
   if (!partitions.data?.partitions.length && !value) return null;
+  const selected = partitions.data?.partitions.find((partition) => partition.id === value);
+  const label = value ? (selected?.name ?? "原分区") : "选择分区（可选）";
   return (
-    <div className="space-y-1.5 text-sm">
-      <label className="inline-flex min-h-11 items-center gap-2 text-muted-foreground">
-        <span>分区</span>
-        <select
-          aria-label="记录所属分区"
-          className="min-h-11 rounded-md border border-border bg-background px-2 text-foreground"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          disabled={disabled || partitions.isPending}
+    <div className="min-w-0 max-w-full space-y-1">
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="quiet"
+              size={value ? "sm" : "icon"}
+              className="h-9 max-w-40 gap-1.5 pointer-coarse:h-10"
+              aria-label={`记录所属分区：${label}`}
+              title={label}
+              disabled={disabled || partitions.isPending}
+            />
+          }
         >
-          <option value="">未分区</option>
+          <FolderIcon className="size-4" strokeWidth={1.7} />
+          {value && <span className="max-w-24 truncate">{label}</span>}
+          {value && <ChevronDownIcon className="size-3 opacity-50" />}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-44 max-w-64">
+          <DropdownMenuItem className="min-h-10" disabled={disabled || partitions.isPending} onClick={() => onChange("")}>
+            <span className="flex-1">不放入分区</span>
+            {!value && <CheckIcon className="size-4" />}
+          </DropdownMenuItem>
           {partitions.data?.partitions.map((partition) => (
-            <option key={partition.id} value={partition.id}>
-              {partition.name}
-            </option>
+            <DropdownMenuItem
+              key={partition.id}
+              className="min-h-10"
+              disabled={disabled || partitions.isPending}
+              onClick={() => onChange(partition.id)}
+            >
+              <span className="min-w-0 flex-1 truncate">{partition.name}</span>
+              {value === partition.id && <CheckIcon className="size-4" />}
+            </DropdownMenuItem>
           ))}
-        </select>
-      </label>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {value && targets.isPending && <p className="text-xs text-muted-foreground">正在确认同步设置…</p>}
       {suspended && <p className="text-xs leading-5 text-muted-foreground">同步已暂停，重新选择分区后启用。</p>}
       {hasSync && (
-        <p className="text-xs leading-5 text-muted-foreground">完整保存后自动同步到：{active.map((target) => target.name).join("、")}</p>
+        <p className="text-xs leading-5 text-muted-foreground">完整保存后同步到：{active.map((target) => target.name).join("、")}</p>
       )}
       {targets.isError && value && (
         <p role="alert" className="text-xs text-destructive">
-          未能读取此分区的同步设置，请重试后保存。
+          暂时无法读取同步设置。
         </p>
       )}
     </div>

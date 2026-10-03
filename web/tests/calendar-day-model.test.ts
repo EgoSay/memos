@@ -43,6 +43,19 @@ describe("calendar day snapshots", () => {
     expect(summary.excerpt?.isCode).toBe(false);
   });
 
+  it("keeps Chinese and emoji intact when truncating a long calendar preview", () => {
+    const prefix = "记".repeat(279);
+    const excerpt = day([memoAt(9, { content: `${prefix}🌈还有新的故事` })]).excerpt?.text;
+    expect(excerpt).toBe(`${prefix}🌈…`);
+    expect(excerpt?.isWellFormed()).toBe(true);
+    expect(day([memoAt(9, { content: `${prefix}地图` })]).excerpt?.text).toBe(`${prefix}地…`);
+  });
+
+  it("does not truncate a preview of exactly 280 Unicode code points", () => {
+    const content = `${"记".repeat(279)}🌈`;
+    expect(day([memoAt(9, { content })]).excerpt?.text).toBe(content);
+  });
+
   it("preserves readable code and checklist text without fences or active checkboxes", () => {
     expect(day([memoAt(9, { content: "```js\nconst x = 1;\nconsole.log(x);\n```" })]).excerpt).toMatchObject({
       text: "const x = 1;\nconsole.log(x);",

@@ -7,6 +7,7 @@ import { memoServiceClient } from "@/connect";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { useJournalPreferences } from "@/hooks/useJournalQueries";
 import { memoKeys } from "@/hooks/useMemoQueries";
+import { buildTimestampRangeFilter } from "@/lib/calendar-utils";
 import { combineCELFilters } from "@/lib/cel-filter";
 import { journalDayRange } from "@/lib/journal";
 import { buildMemoCreatorFilter } from "@/lib/resource-names";
@@ -35,6 +36,14 @@ export default function JournalSourcePicker({
   const [archived, setArchived] = useState(false);
   const from = query.from ? journalDayRange(query.from, timezone)?.start : undefined;
   const to = query.to ? journalDayRange(query.to, timezone)?.end : undefined;
+  const dateFilter =
+    from !== undefined && to !== undefined
+      ? buildTimestampRangeFilter("created_ts", { startTimestamp: from, endTimestamp: to })
+      : from !== undefined
+        ? `created_ts >= timestamp(${from})`
+        : to !== undefined
+          ? `created_ts < timestamp(${to})`
+          : undefined;
   const records = useInfiniteQuery({
     queryKey: [...memoKeys.lists(), "journal-source-picker", user?.name, query, archived, timezone],
     initialPageParam: "",
@@ -47,8 +56,7 @@ export default function JournalSourcePicker({
           filter: combineCELFilters(
             buildMemoCreatorFilter(user?.name ?? ""),
             query.text ? `content.contains(${JSON.stringify(query.text)})` : undefined,
-            from !== undefined ? `create_time >= ${from}` : undefined,
-            to !== undefined ? `create_time < ${to}` : undefined,
+            dateFilter,
           ),
           orderBy: "create_time desc",
         },

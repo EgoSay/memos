@@ -87,7 +87,11 @@ const TagsSection = ({ tagCount, onSelect, scope }: Props) => {
   const tags = useMemo(() => Object.entries(tagCount).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])), [tagCount]);
 
   if (tags.length === 0) {
-    return null;
+    return (
+      <SidebarSection label={t("common.tags")}>
+        <p className="px-2 py-1 text-xs leading-5 text-muted-foreground">{t("common.empty-placeholder")}</p>
+      </SidebarSection>
+    );
   }
 
   const handleTagClick = (tag: string) => {

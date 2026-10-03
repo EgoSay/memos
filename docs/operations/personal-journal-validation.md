@@ -56,7 +56,23 @@ J01 的信息架构、交互规范落实为运行界面与真实浏览器复核�
 
 真实待定输入：本人主用手机/浏览器；AI 服务和模型；首个社媒平台与接收服务；独立备份目录/存储。无云部署地址和凭证时，只交付本机私有实例，不擅自上线公网。
 
-## 可复现入口
+## 2026-10-03 试用反馈修订
+
+本次反馈明确保留原有标签与列表、完整日历、地图三种视图。此前登录态导航提前返回，遮住了原导航；现恢复原入口、列表显示选项、附件和搜索，并保留跨视图的标签及范围条件。标签无数据时仍显示空态。
+
+编辑器改为直接输入、照片与录音快捷入口、更多菜单和可选的紧凑分区选择。未选分区时只显示轻量入口，选择后显示可截短的名称；已有外发目标及“保存并同步”仍明确显示。添加标签通过独立的行内操作保留光标和原文，不复用插入 Markdown 块的行为。
+
+模拟数据与正式实例隔离：`localhost:5231`、`runtime-demo`、虚构账号 `journal-demo`，与 `127.0.0.1:5230` 的 `personal-data` 分开。20 条固定种子记录覆盖 2016—2026、多层标签、标题/引用/列表/表格/代码、长文、纯图片、纯音频和混合媒体；14 个附件的原件下载与 SHA256 全部核对。另有浏览器交互创建的测试记录。未将这些内容写入正式个人资料。
+
+真实数据暴露并修复的问题包括：独立回顾卡片的标签/任务渲染依赖了不存在的详情上下文、回顾长文直接截断 Markdown、内嵌图片不能预览、带 `#`/`?` 的附件名破坏缩略图参数、按日页面及来源选择器的日期条件不符合服务端 CEL 契约。日期请求改用 `created_ts` 和 `timestamp()`，保留原记录日期与时区边界；Go API/SQLite 覆盖普通日、23/25 小时夏令时日及正常/归档记录。日历预览另修复 Unicode 码点截断，避免截断 emoji。
+
+最终检查：前端 1,908/1,908（209 个测试文件）、TypeScript/Biome（742 个文件）和生产构建通过；受影响的 frontend HTTP 与日期 API 包 Go race 通过。初轮测试发现并修正了失效日期字段、真实标签/任务卡片的上下文依赖，以及保存开始时仍能改变已打开分区菜单的问题。最终源码未更改数据库迁移和数据模型。
+
+浏览器证据与可重现夹具位于本机任务目录 `verification/` 和 `demo-fixtures/`。其中 `ui-desktop.png`、`ui-mobile.png`、`ui-mobile-partition.png` 记录桌面与 390/320px 布局。PNG/SVG、多图、正文图片、纯音频均有真实页面验证；人声 WAV 时长 12.699955 秒、音调 2 秒，实际播放后 `currentTime` 前进、`readyState=4`。窄视口属于桌面模拟，不替代本人手机录音和软键盘验收。
+
+升级回归另发现缺失静态资源返回 404 时仍带一个月 immutable 缓存头；修复为错误响应 `no-store`。Service Worker 的静态缓存读写失败现在不会丢弃正常网络响应。这些行为通过真实 Echo HTTP、Go race 和注入 CacheStorage 故障的回归验证；无需清理草稿或账号数据。
+
+## 原交付复现入口
 
 见 [运行与数据保障](personal-journal.md)。重点测试源码：`server/api/v1/journal_*_test.go`、`core/journal/journal_test.go`、`core/partition/*_test.go`、`core/journalbackup/*_test.go`、`store/test/journal_test.go` 与 `memo_record_snapshot_test.go`、`web/tests/journal-*.test.*`、`scripts/tests/test_journal_backup.py`。
 

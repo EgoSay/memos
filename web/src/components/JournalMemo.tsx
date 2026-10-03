@@ -1,7 +1,8 @@
 import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { MoreHorizontalIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { type MouseEvent, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { CLAMP_PREVIEW_HEIGHT_PX } from "@/components/ClampedSection";
 import JournalRecordActions from "@/components/JournalRecordActions";
 import JournalReviewActions from "@/components/JournalReviewActions";
 import MemoContent from "@/components/MemoContent";
@@ -32,6 +33,12 @@ export default function JournalMemo({ memo }: { memo: Memo }) {
   const isExpanded = expanded.has(memo.name);
   const long = memo.content.length > 700;
   const { previewState, openPreview, setPreviewOpen } = useImagePreview();
+  const handleMemoContentClick = (event: MouseEvent) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement) || target.closest("a")) return;
+    const source = target.getAttribute("src");
+    if (source) openPreview(source);
+  };
   const attachments = useMemo(() => separateAttachments(filterInlineManagedAttachments(memo.content, memo.attachments)), [memo]);
   const date = memo.createTime ? timestampDate(memo.createTime) : undefined;
   const dateText = date?.toLocaleString("zh-CN", {
@@ -72,19 +79,31 @@ export default function JournalMemo({ memo }: { memo: Memo }) {
         </Button>
       ) : (
         <div className="space-y-4">
-          {long && !isExpanded ? (
-            <p className="whitespace-pre-wrap break-words text-base leading-7">{memo.content.slice(0, 700)}…</p>
-          ) : (
+          <div
+            className={long && !isExpanded ? "relative overflow-hidden" : undefined}
+            style={long && !isExpanded ? { maxHeight: CLAMP_PREVIEW_HEIGHT_PX } : undefined}
+          >
             <MemoContent
               memoName={memo.name}
               parentPage={parentPage}
               content={memo.content}
               attachments={memo.attachments}
               contentClassName="leading-7"
+              compact={long && !isExpanded}
+              readonly
+              onClick={handleMemoContentClick}
             />
-          )}
+            {long && !isExpanded && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-card to-transparent" />
+            )}
+          </div>
           {long && (
-            <Button variant="ghost" onClick={() => setExpanded(memo.name, !isExpanded)} className="min-h-11 px-0 text-muted-foreground">
+            <Button
+              variant="ghost"
+              onClick={() => setExpanded(memo.name, !isExpanded)}
+              aria-expanded={isExpanded}
+              className="min-h-11 px-0 text-muted-foreground"
+            >
               {isExpanded ? "收起" : "展开全文"}
             </Button>
           )}

@@ -39,28 +39,30 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET" || url.origin !== self.location.origin || privateEndpoint(url)) return;
   if (request.mode === "navigate") {
     event.respondWith((async () => {
-      const cache = await caches.open(SHELL_CACHE);
+      const cache = await caches.open(SHELL_CACHE).catch(() => undefined);
       try {
         const response = await fetch(request);
         // This server returns a static application shell, never embedded diary
         // data. Refresh it after a new build so offline HTML references the
         // version whose hashed assets were actually loaded.
-        if (response.ok && response.headers.get("content-type")?.includes("text/html")) await cache.put("/", response.clone());
+        if (cache && response.ok && response.headers.get("content-type")?.includes("text/html")) await cache.put("/", response.clone()).catch(() => undefined);
         return response;
       } catch {
-        return (await cache.match("/")) || new Response("请先联网打开一次记录页面，再使用离线记录。", { status: 503 });
+        return (cache && await cache.match("/").catch(() => undefined)) || new Response("请先联网打开一次记录页面，再使用离线记录。", { status: 503 });
       }
     })());
   } else if (staticResource(url)) {
     event.respondWith((async () => {
-      const cache = await caches.open(SHELL_CACHE);
+      const cache = await caches.open(SHELL_CACHE).catch(() => undefined);
       // Module requests carry Origin while warm-up fetches do not. The server
       // adds Vary: Origin, but these allowlisted static bytes are universal.
       // Private/API requests never reach this branch.
-      const cached = await cache.match(request, { ignoreVary: true });
+      const cached = cache && await cache.match(request, { ignoreVary: true }).catch(() => undefined);
       if (cached) return cached;
       const response = await fetch(request);
-      if (response.ok) await cache.put(request, response.clone());
+      // CacheStorage is optional: quota/read/write failures must not discard
+      // an otherwise successful online resource response.
+      if (cache && response.ok) await cache.put(request, response.clone()).catch(() => undefined);
       return response;
     })());
   }

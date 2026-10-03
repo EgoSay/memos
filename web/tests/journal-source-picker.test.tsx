@@ -66,10 +66,25 @@ describe("explicit source selection", () => {
     fireEvent.click(screen.getByRole("button", { name: "查找" }));
     await waitFor(() => expect(listMemos).toHaveBeenCalledTimes(2));
     const filter = listMemos.mock.calls[1][0].filter;
-    expect(filter).toContain(`create_time >= ${Date.parse("2026-03-08T05:00:00Z") / 1000}`);
-    expect(filter).toContain(`create_time < ${Date.parse("2026-03-09T04:00:00Z") / 1000}`);
+    expect(filter).toContain(`created_ts >= timestamp(${Date.parse("2026-03-08T05:00:00Z") / 1000})`);
+    expect(filter).toContain(`created_ts < timestamp(${Date.parse("2026-03-09T04:00:00Z") / 1000})`);
     expect(onChange).not.toHaveBeenCalled();
     expect(screen.getByText("已选 1 条")).toBeInTheDocument();
+  });
+
+  it.each([
+    ["从哪一天", "2026-03-08", ">=", "2026-03-08T05:00:00Z"],
+    ["到哪一天（含当天）", "2026-03-08", "<", "2026-03-09T04:00:00Z"],
+  ])("supports a range with only %s using the CEL timestamp contract", async (label, date, operator, instant) => {
+    renderPicker();
+    await screen.findByText("这一天的记录");
+    fireEvent.click(screen.getByText("按日期范围查找"));
+    fireEvent.change(screen.getByLabelText(label), { target: { value: date } });
+    fireEvent.click(screen.getByRole("button", { name: "查找" }));
+    await waitFor(() => expect(listMemos).toHaveBeenCalledTimes(2));
+    expect(listMemos.mock.calls[1][0].filter).toBe(
+      `(creator == "users/me") && (created_ts ${operator} timestamp(${Date.parse(instant) / 1000}))`,
+    );
   });
 
   it("rejects a reversed date interval before issuing another request", async () => {

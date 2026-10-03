@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { useJournalPreferences } from "@/hooks/useJournalQueries";
 import { useInfiniteMemos } from "@/hooks/useMemoQueries";
+import { buildTimestampRangeFilter } from "@/lib/calendar-utils";
 import { combineCELFilters } from "@/lib/cel-filter";
 import { journalDayRange } from "@/lib/journal";
 import { buildMemoCreatorFilter } from "@/lib/resource-names";
@@ -17,7 +18,7 @@ function DayRecords({ date, timezone }: { date: string; timezone: string }) {
   const range = journalDayRange(date, timezone);
   const filter = combineCELFilters(
     buildMemoCreatorFilter(user?.name ?? ""),
-    range ? `create_time >= ${range.start} && create_time < ${range.end}` : "false",
+    range ? buildTimestampRangeFilter("created_ts", { startTimestamp: range.start, endTimestamp: range.end }) : "false",
   );
   const normal = useInfiniteMemos({ state: State.NORMAL, filter, pageSize: 100, orderBy: "create_time desc" }, { enabled: Boolean(range) });
   const archived = useInfiniteMemos(

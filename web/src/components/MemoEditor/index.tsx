@@ -384,7 +384,7 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
       <div
         ref={editorContainerRef}
         className={cn(
-          "group relative w-full flex flex-col justify-between items-start bg-card px-4 py-3 rounded-lg border border-border/70 gap-2",
+          "group relative w-full flex flex-col justify-between items-start bg-card px-4 pt-4 pb-3 rounded-xl border border-border/70 focus-within:border-primary/35 gap-3 sm:px-5 sm:pt-5",
           FOCUS_MODE_STYLES.transition,
           isFocusMode && cn(FOCUS_MODE_STYLES.container.base, FOCUS_MODE_STYLES.container.spacing),
           !isFocusMode && className,
@@ -449,15 +449,17 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
             </div>
           </div>
         )}
-        <div role="status" className="text-xs text-muted-foreground">
-          {durable.status === "saving"
-            ? "正在保存草稿…"
-            : durable.status === "saved"
-              ? "草稿已保存在此设备"
-              : durable.status === "failed"
-                ? "此设备未能保存草稿，请保留页面或复制内容。"
-                : ""}
-        </div>
+        {durable.status !== "idle" && (
+          <div role="status" className="text-xs leading-4 text-muted-foreground/70">
+            {durable.status === "saving"
+              ? "正在保存草稿…"
+              : durable.status === "saved"
+                ? "草稿已保存在此设备"
+                : durable.status === "failed"
+                  ? "此设备未能保存草稿，请保留页面或复制内容。"
+                  : ""}
+          </div>
+        )}
         {!memoName && !parentMemoName && <PendingRecords owner={currentUser?.name ?? ""} draftKey={editorCacheKey} />}
         {/* Metadata and toolbar grouped together at bottom */}
         <div className="w-full flex flex-col gap-2">
@@ -483,6 +485,9 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
             onAudioRecorderClick={handleAudioRecorderClick}
             viewToggles={viewToggles}
             onInsertImages={handleInsertImages}
+            onInsertTag={() => {
+              editorRef.current?.startTag();
+            }}
           />
         </div>
       </div>

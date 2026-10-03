@@ -389,58 +389,13 @@ const GlobalNavigation = () => {
   const expandedKind = destinations.find((destination) => destination.kind === routeKind)?.kind ?? "timeline";
   const navigationPath = (pathname: string) => collectionNavigationPath(pathname, location, currentUser?.username);
 
-  if (currentUser)
-    return (
-      <nav aria-label="主要导航" className={cn("space-y-1", SIDEBAR_RAIL_CLASSES)}>
-        {[
-          {
-            to: ROUTES.HOME,
-            label: "记录",
-            icon: LibraryIcon,
-            active: timelineActive || location.pathname.startsWith(`${ROUTES.JOURNAL}/day/`),
-          },
-          {
-            to: ROUTES.JOURNAL,
-            label: "随便看看",
-            icon: CompassIcon,
-            active: routeKind === "journal" && !location.pathname.includes("/day/"),
-          },
-        ].map(({ to, label, icon: Icon, active }) => (
-          <Link
-            key={to}
-            to={to}
-            onClick={() => setMobileOpen(false)}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2",
-              active ? "bg-sidebar-accent font-medium text-foreground" : "text-muted-foreground hover:bg-sidebar-accent/70",
-            )}
-          >
-            <Icon className="size-4" strokeWidth={1.6} />
-            {label}
-          </Link>
-        ))}
-        <button
-          type="button"
-          onClick={() => {
-            setMobileOpen(false);
-            setQuickFindOpen(true);
-          }}
-          className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm text-muted-foreground hover:bg-sidebar-accent/70 focus-visible:outline-2"
-        >
-          <SearchIcon className="size-4" strokeWidth={1.6} />
-          查找记录
-        </button>
-      </nav>
-    );
-
   return (
     <TooltipProvider>
-      <nav className={cn("@container flex h-7 items-center gap-1", SIDEBAR_RAIL_CLASSES)} aria-label="Primary">
+      <nav className={cn("@container flex h-7 items-center gap-1", SIDEBAR_RAIL_CLASSES)} aria-label={currentUser ? "主要导航" : "Primary"}>
         <div ref={timelineRef} className={cn("flex shrink-0 items-center rounded-md", timelineActive && sidebarRowStateClasses("current"))}>
           <NavPill
             to={navigationPath(ROUTES.HOME)}
-            label={t("common.timeline")}
+            label={currentUser ? t("memo.layout-list") : t("common.timeline")}
             icon={LibraryIcon}
             active={timelineActive}
             expanded={expandedKind === "timeline"}
@@ -458,8 +413,29 @@ const GlobalNavigation = () => {
             expanded={destination.kind === expandedKind}
           />
         ))}
-        <NavPill label={t("common.search")} icon={SearchIcon} onClick={() => setQuickFindOpen(true)} className="ms-auto" />
+        <NavPill
+          label={currentUser ? "查找记录" : t("common.search")}
+          icon={SearchIcon}
+          onClick={() => setQuickFindOpen(true)}
+          className="ms-auto"
+        />
       </nav>
+      {currentUser && (
+        <div className={cn("mt-2", SIDEBAR_RAIL_CLASSES)}>
+          <Link
+            to={ROUTES.JOURNAL}
+            onClick={() => setMobileOpen(false)}
+            aria-current={routeKind === "journal" && !location.pathname.includes("/day/") ? "page" : undefined}
+            className={cn(
+              SIDEBAR_ROW_CLASSES,
+              sidebarRowStateClasses(routeKind === "journal" && !location.pathname.includes("/day/") ? "current" : "idle"),
+            )}
+          >
+            <SidebarRowIconSlot icon={CompassIcon} />
+            <span>随便看看</span>
+          </Link>
+        </div>
+      )}
     </TooltipProvider>
   );
 };

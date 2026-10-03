@@ -47,6 +47,17 @@ func (s *FrontendService) Serve(_ context.Context, e *echo.Echo) {
 		}
 
 		setFrontendCacheHeaders(c, requestPath)
+		if response, err := echo.UnwrapResponse(c.Response()); err == nil {
+			response.Before(func() {
+				// A missing build asset can appear after an update. Never pin
+				// its error response in the browser's immutable asset cache.
+				if response.Status >= http.StatusBadRequest {
+					response.Header().Set(echo.HeaderCacheControl, "no-store")
+					response.Header().Set("Pragma", "no-cache")
+					response.Header().Set("Expires", "0")
+				}
+			})
+		}
 		return false
 	}
 

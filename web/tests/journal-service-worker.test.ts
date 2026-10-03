@@ -32,12 +32,13 @@ function makeWorker() {
     },
   };
   const network = vi.fn().mockRejectedValue(new TypeError("Server is offline"));
+  const openCache = vi.fn().mockResolvedValue(cache);
   let onFetch: ((event: FetchEvent) => void) | undefined;
   runInNewContext(worker, {
     URL,
     Response,
     fetch: network,
-    caches: { open: async () => cache },
+    caches: { open: openCache },
     self: {
       location: { origin },
       addEventListener(type: string, listener: (event: FetchEvent) => void) {
@@ -48,6 +49,7 @@ function makeWorker() {
   return {
     cache,
     network,
+    openCache,
     dispatch(request: Request) {
       const respondWith = vi.fn<(response: Promise<Response>) => void>();
       onFetch?.({ request, respondWith });
@@ -57,6 +59,40 @@ function makeWorker() {
 }
 
 describe("offline journal service worker", () => {
+  it.each(["open", "match", "put"])("keeps an online module available when cache %s fails", async (operation) => {
+    const { cache, dispatch, network, openCache } = makeWorker();
+    const failure = new DOMException("Cache unavailable", "QuotaExceededError");
+    if (operation === "open") openCache.mockRejectedValue(failure);
+    else vi.spyOn(cache, operation as "match" | "put").mockRejectedValue(failure);
+    network.mockResolvedValue(new Response("export default 'available'", { headers: { "Content-Type": "text/javascript" } }));
+    const request = new Request(`${origin}/assets/route.js`, { mode: "cors" });
+    const response = await dispatch(request).mock.calls[0]?.[0];
+    expect(response?.status).toBe(200);
+    expect(await response?.text()).toBe("export default 'available'");
+    expect(network).toHaveBeenCalledExactlyOnceWith(request);
+  });
+
+  it("returns fresh online HTML when its cache write fails instead of falling back to an old build", async () => {
+    const { cache, dispatch, network } = makeWorker();
+    await cache.put("/", new Response("old build"));
+    vi.spyOn(cache, "put").mockRejectedValue(new DOMException("Storage full", "QuotaExceededError"));
+    network.mockResolvedValue(new Response("new build", { headers: { "Content-Type": "text/html" } }));
+    const request = new Request(`${origin}/`);
+    Object.defineProperty(request, "mode", { value: "navigate" });
+    const response = await dispatch(request).mock.calls[0]?.[0];
+    expect(await response?.text()).toBe("new build");
+    expect(network).toHaveBeenCalledOnce();
+  });
+
+  it("does not store a missing asset response", async () => {
+    const { cache, dispatch, network } = makeWorker();
+    const put = vi.spyOn(cache, "put");
+    network.mockResolvedValue(new Response("Not found", { status: 404 }));
+    const response = await dispatch(new Request(`${origin}/assets/missing.js`)).mock.calls[0]?.[0];
+    expect(response?.status).toBe(404);
+    expect(put).not.toHaveBeenCalled();
+  });
+
   it.each([
     "/assets/index-test.js",
     "/assets/index-test.css",

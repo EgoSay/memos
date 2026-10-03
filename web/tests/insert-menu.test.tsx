@@ -42,6 +42,22 @@ const renderMenu = (onInsertImages = vi.fn(), isSaving = false, hosted = false) 
   );
 
 describe("InsertMenu", () => {
+  test("opens image selection and recording directly without the more menu", () => {
+    const onRecord = vi.fn();
+    const { container } = render(
+      <EditorProvider>
+        <InsertMenu isSaving={false} onLocationChange={vi.fn()} onAudioRecorderClick={onRecord} onInsertImages={vi.fn()} />
+      </EditorProvider>,
+    );
+    const imageInput = container.querySelector<HTMLInputElement>('input[accept="image/*"]')!;
+    const selectImage = vi.spyOn(imageInput, "click");
+    fireEvent.click(screen.getByRole("button", { name: "editor.insert-menu.insert-image" }));
+    expect(selectImage).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole("button", { name: "editor.audio-recorder.trigger" }));
+    expect(onRecord).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
   test("shows attachment and inline-image actions in the intended order", () => {
     renderMenu();
     const trigger = screen.getByRole("button", { name: "common.add" });

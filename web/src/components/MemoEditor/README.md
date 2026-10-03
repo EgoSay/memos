@@ -133,8 +133,10 @@ eligibility/application in `EditorSuggestions`.
 
 Every instance is one of two things, and `onFocusModeExit` is the switch:
 
-- **Inline** (prop omitted) — the editor sits in page flow (Home composer, memo edit, comments) and owns its presentation. The ＋ menu offers the view toggles: focus mode expands the editor over the page and the formatting toolbar's trailing button minimizes it back in place, while the formatting-toolbar preference governs the normal-mode layout.
-- **Hosted** (prop supplied) — a host presents the editor full-screen and owns that frame; `contexts/GlobalMemoEditorContext.tsx` is the one today. The editor mounts straight into focus mode and exits by calling back to dismiss the host, so the formatting toolbar's trailing button reads as Close rather than minimize. The ＋ menu's view toggles are absent: focus mode is not the editor's to leave, and it already forces the formatting toolbar on.
+- **Inline** (prop omitted) — the editor sits in page flow (Home composer, memo edit, comments) and owns its presentation. The more menu offers the view toggles: focus mode expands the editor over the page and the formatting toolbar's trailing button minimizes it back in place, while the formatting-toolbar preference governs the normal-mode layout.
+- **Hosted** (prop supplied) — a host presents the editor full-screen and owns that frame; `contexts/GlobalMemoEditorContext.tsx` is the one today. The editor mounts straight into focus mode and exits by calling back to dismiss the host, so the formatting toolbar's trailing button reads as Close rather than minimize. The more menu's view toggles are absent: focus mode is not the editor's to leave, and it already forces the formatting toolbar on.
+
+Photos and audio recording are direct quiet toolbar actions. Less frequent actions, including starting a tag, remain in the more menu. `startTag()` inserts an inline `#` at the caret without replacing selected text and leaves the caret immediately after it; block-oriented `insertMarkdown()` retains its existing semantics. The optional personal-journal partition picker uses a compact menu and only shows a name after selection. Configured outgoing destinations remain visible beside the explicit “保存并同步” action.
 
 Those toggles travel as a single optional `viewToggles` object (`types/components.ts`) down `EditorToolbar` → `InsertMenu`, so they can only appear or disappear together.
 

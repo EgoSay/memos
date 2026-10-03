@@ -1,6 +1,8 @@
 import { uniqBy } from "lodash-es";
 import {
   CheckIcon,
+  EllipsisIcon,
+  HashIcon,
   ImageIcon,
   LinkIcon,
   LoaderIcon,
@@ -8,7 +10,6 @@ import {
   Maximize2Icon,
   MicIcon,
   PaperclipIcon,
-  PlusIcon,
   TypeIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -23,6 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useDebouncedEffect } from "@/hooks";
 import type { MemoRelation } from "@/types/proto/api/v1/memo_service_pb";
 import { useTranslate } from "@/utils/i18n";
@@ -151,17 +153,68 @@ const InsertMenu = (props: InsertMenuProps) => {
 
   return (
     <>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              variant="quiet"
+              size="icon"
+              className="size-9 pointer-coarse:size-10"
+              disabled={insertionDisabled}
+              aria-label={t("editor.insert-menu.insert-image")}
+              onClick={handleInlineImageUploadClick}
+            />
+          }
+        >
+          <ImageIcon className="size-[18px]" strokeWidth={1.7} />
+        </TooltipTrigger>
+        <TooltipContent>添加照片</TooltipContent>
+      </Tooltip>
+      {props.onAudioRecorderClick && (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="quiet"
+                size="icon"
+                className="size-9 pointer-coarse:size-10"
+                disabled={insertionDisabled}
+                aria-label={t("editor.audio-recorder.trigger")}
+                onClick={props.onAudioRecorderClick}
+              />
+            }
+          >
+            <MicIcon className="size-[18px]" strokeWidth={1.7} />
+          </TooltipTrigger>
+          <TooltipContent>录一段声音</TooltipContent>
+        </Tooltip>
+      )}
       <DropdownMenu>
         <DropdownMenuTrigger
-          render={<Button variant="outline" size="icon-compact" disabled={insertionDisabled} aria-label={t("common.add")} />}
+          render={
+            <Button
+              variant="quiet"
+              size="icon"
+              className="size-9 pointer-coarse:size-10"
+              disabled={insertionDisabled}
+              aria-label={t("common.add")}
+              title="更多选项"
+            />
+          }
         >
           {isUploading ? (
             <LoaderIcon className="size-4 animate-spin" strokeWidth={1.8} />
           ) : (
-            <PlusIcon className="size-4" strokeWidth={1.8} />
+            <EllipsisIcon className="size-[18px]" strokeWidth={1.7} />
           )}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" size="sm">
+          {props.onInsertTag && (
+            <DropdownMenuItem className="min-h-10" onClick={props.onInsertTag} disabled={props.isSaving}>
+              <HashIcon />
+              添加标签
+            </DropdownMenuItem>
+          )}
           {insertItems.map((item) => (
             <DropdownMenuItem key={item.key} onClick={item.onClick} disabled={props.isSaving}>
               <item.icon />

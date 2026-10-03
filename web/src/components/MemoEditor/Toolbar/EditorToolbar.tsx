@@ -1,9 +1,8 @@
-import { CheckIcon, CornerDownLeftIcon, LoaderIcon } from "lucide-react";
+import { CheckIcon, LoaderIcon } from "lucide-react";
 import { type FC, useCallback } from "react";
 import PartitionPicker from "@/components/Journal/PartitionPicker";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { type Location, Visibility } from "@/types/proto/api/v1/memo_service_pb";
 import { useTranslate } from "@/utils/i18n";
 import { primaryModifierGlyph } from "@/utils/platform";
@@ -12,24 +11,6 @@ import { useEditorContext, useEditorSelector } from "../state";
 import type { EditorToolbarProps } from "../types";
 import AudienceMenu from "./AudienceMenu";
 import InsertMenu from "./InsertMenu";
-
-/**
- * Shortcut chip inside the commit button. While saving, a spinner takes the
- * chip's place; both layers share one grid cell so the button keeps its width
- * across the swap. Hidden on coarse pointers, where there is no keyboard to hint.
- */
-const ShortcutChip: FC<{ busy: boolean }> = ({ busy }) => (
-  <kbd
-    aria-hidden
-    className="grid place-items-center rounded-[4px] bg-primary-foreground/20 px-1 py-0.5 font-sans text-2xs leading-none font-medium pointer-coarse:hidden"
-  >
-    <span className={cn("col-start-1 row-start-1 inline-flex items-center gap-px", busy && "invisible")}>
-      {primaryModifierGlyph()}
-      <CornerDownLeftIcon className="size-2.5" strokeWidth={2.5} />
-    </span>
-    <LoaderIcon className={cn("col-start-1 row-start-1 size-2.5 animate-spin", !busy && "invisible")} strokeWidth={3} />
-  </kbd>
-);
 
 export const EditorToolbar: FC<EditorToolbarProps> = ({
   onSave,
@@ -41,6 +22,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   onAudioRecorderClick,
   viewToggles,
   onInsertImages,
+  onInsertTag,
 }) => {
   const t = useTranslate();
   const { actions, dispatch } = useEditorContext();
@@ -86,21 +68,27 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   };
 
   const commitButton = justSaved ? (
-    <Button size="sm" disabled>
+    <Button size="sm" className="h-9 px-4 pointer-coarse:h-10" disabled>
       {t("editor.saved")}
       <CheckIcon className="size-3.5" strokeWidth={2.5} />
     </Button>
   ) : (
-    <Button size="sm" onClick={onSave} disabled={isSaving || !valid}>
+    <Button
+      size="sm"
+      className="h-9 min-w-16 rounded-lg px-4 shadow-none pointer-coarse:h-10"
+      title={`${primaryModifierGlyph()} ↵ 保存`}
+      onClick={onSave}
+      disabled={isSaving || !valid}
+    >
       {commitLabel}
-      <ShortcutChip busy={isSaving} />
+      {isSaving && <LoaderIcon className="size-3.5 animate-spin" />}
     </Button>
   );
 
   return (
-    // Every control on this rail is 28px, the same box as the sidebar's compose control and nav pills.
-    <div className="flex w-full min-w-0 flex-row items-center justify-between gap-1">
-      <div className="flex min-w-0 flex-1 flex-row items-center justify-start gap-1">
+    // Writing stays primary; optional tools remain quiet and wrap only when needed.
+    <div className="flex w-full min-w-0 flex-row items-end justify-between gap-2">
+      <div className="flex min-w-0 flex-1 flex-row flex-wrap items-center justify-start gap-0.5">
         <InsertMenu
           isUploading={isUploading}
           isSaving={committing}
@@ -110,13 +98,20 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
           onAudioRecorderClick={onAudioRecorderClick}
           viewToggles={viewToggles}
           onInsertImages={onInsertImages}
+          onInsertTag={onInsertTag}
         />
         {!parentMemoName && (
           <PartitionPicker
             value={partitionId}
             suspended={suspended}
             onChange={(value) =>
-              dispatch(actions.setMetadata({ journalPartitionId: value, journalPartitionSuspended: false, journalPartitionExplicit: true }))
+              dispatch(
+                actions.setMetadata({
+                  journalPartitionId: value,
+                  journalPartitionSuspended: false,
+                  journalPartitionExplicit: true,
+                }),
+              )
             }
             onSyncChange={syncChange}
             disabled={committing}
