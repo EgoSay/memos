@@ -21,6 +21,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v6
+      - name: Verify snapshot consistency and backup failure handling
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -v
       - name: Build metadata
         id: metadata
         shell: bash

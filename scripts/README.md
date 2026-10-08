@@ -61,3 +61,76 @@ A persistent Docker volume protects data during redeployment; it is not an
 off-server backup. Creating an R2 bucket alone does not enable automatic backups.
 Do not claim cloud recovery is ready until a scheduled backup has succeeded and
 the resulting archive has been restored and checked in an isolated instance.
+
+### Online encrypted snapshots
+
+`journal_snapshot.py` uses SQLite's online backup API, validates the database,
+and pins the immutable local files referenced by attachments and revisions.
+It includes retained originals and creates a SHA-256 manifest. Concurrent media
+deletion, missing originals, unsafe paths and unsupported external/S3 media fail
+the attempt instead of producing a supposedly complete snapshot. A subsequent
+attempt starts from a new database snapshot. Avatars embedded in the database are
+covered; arbitrary remote images linked in text still depend on their remote host.
+Unreferenced files and regenerable caches are excluded.
+
+`journal_cloud_backup.py` serializes snapshot creation, encrypted restic upload,
+remote snapshot confirmation and local manifest verification. A partial restic
+backup (including exit 3) never advances `last-success.json`. Optional monitoring
+delivery has a separate `last-report.json`: a delivery failure does not invalidate
+a completed backup. Raw subprocess output and credentials are not logged.
+
+Store configuration outside Git with directory mode 0700 and file mode 0600:
+
+```json
+{
+  "source": "/actual/docker-volume/_data",
+  "logicalRoot": "/var/opt/memos",
+  "workDir": "/var/lib/memos-backup",
+  "repository": "s3:https://ACCOUNT.r2.cloudflarestorage.com/PRIVATE_BUCKET/restic",
+  "passwordFile": "/etc/memos-backup/restic-password",
+  "host": "memos-production",
+  "instanceVersion": "DEPLOYED_COMMIT",
+  "credentials": {
+    "AWS_ACCESS_KEY_ID": "BUCKET_SCOPED_KEY",
+    "AWS_SECRET_ACCESS_KEY": "BUCKET_SCOPED_SECRET",
+    "AWS_DEFAULT_REGION": "auto"
+  }
+}
+```
+
+Use a cryptographically random repository password and retain an independent
+recovery copy. Keep the staging directory outside the live volume. Its disk must
+fit the SQLite snapshot and, when hard links cannot be used, the referenced media.
+Install a checksum-verified restic binary (tested with 0.19.1) and Python 3.9+.
+Initialize once; never automatically initialize a new repository after an access
+failure:
+
+```bash
+umask 077
+python3 scripts/journal_cloud_backup.py init --config /etc/memos-backup/config.json
+python3 scripts/journal_cloud_backup.py backup --config /etc/memos-backup/config.json
+python3 scripts/journal_cloud_backup.py check --config /etc/memos-backup/config.json
+python3 scripts/journal_cloud_backup.py retain --config /etc/memos-backup/config.json
+```
+
+`check` reads all remote repository data. `retain` keeps all snapshots from the
+latest two days, 30 daily, 12 monthly and up to 100 yearly snapshots for the
+configured host. Never apply object-age lifecycle deletion to restic data packs.
+These scripts alone do not schedule jobs: provision and verify the backup timer,
+retention/check jobs and independent monitoring before claiming automatic backup.
+
+Restore the explicit snapshot ID from a verified success receipt with restic into
+a new, isolated directory; do not assume the newest snapshot is complete, because
+restic can retain snapshots from failed partial uploads. Then run
+`journal_snapshot.py verify --destination RESTORED_DIRECTORY`. Verify account and
+media behavior in an isolated app as well. Before starting a restored copy, use
+the existing `journal_backup.pause_restored_permissions` routine to revoke old
+sessions/shares and pause outgoing delivery, and map absolute attachment paths
+to the restored data root. Do not replace a running database or start two writable
+production instances. Repository passwords and raw restored data stay private.
+
+Run backup consistency and failure-path tests with:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -v
+```
