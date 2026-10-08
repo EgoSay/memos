@@ -79,7 +79,8 @@ jobs:
           import os, pathlib
           for name, env in [('memos-key', 'DEPLOY_KEY'), ('memos-hosts', 'KNOWN_HOSTS')]:
               path = pathlib.Path(os.environ['RUNNER_TEMP']) / name
-              path.write_text(os.environ[env])
+              # Secret entry tools may trim the final newline required by OpenSSH.
+              path.write_text(os.environ[env].replace('\r\n', '\n').rstrip() + '\n')
               path.chmod(0o600)
           PY
             echo 'enabled=true' >> "$GITHUB_OUTPUT"
