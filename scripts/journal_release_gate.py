@@ -80,12 +80,23 @@ def prepare(release):
     finally:
         signal.alarm(0)
 
+def wait_for_release(pending):
+    # HTTP can be ready before Docker's first scheduled health check completes.
+    deadline = time.monotonic() + 120
+    while time.monotonic() < deadline:
+        try:
+            d = json.loads(command('docker', 'inspect', CONTAINER))[0]
+            digests = json.loads(command('docker', 'image', 'inspect', d['Image']))[0]['RepoDigests']
+            if 'ghcr.io/egosay/memos-journal@' + pending['digest'] in digests and d['State'].get('Health', {}).get('Status') == 'healthy':
+                return d
+        except subprocess.CalledProcessError:
+            pass  # Compose may briefly remove/recreate the named container.
+        time.sleep(2)
+    raise RuntimeError('wrong or unhealthy release after readiness deadline')
+
 def confirm():
     pending = json.loads((ROOT / 'pending.json').read_text())
-    d = json.loads(command('docker', 'inspect', CONTAINER))[0]
-    digests = json.loads(command('docker', 'image', 'inspect', d['Image']))[0]['RepoDigests']
-    if 'ghcr.io/egosay/memos-journal@' + pending['digest'] not in digests or d['State'].get('Health', {}).get('Status') != 'healthy':
-        raise RuntimeError('wrong or unhealthy release')
+    d = wait_for_release(pending)
     address = next(iter(d['NetworkSettings']['Networks'].values()))['IPAddress']
     profile = json.loads(command('curl', '--fail', '--silent', 'http://' + address + ':5230/api/v1/instance/profile'))
     if profile.get('commit') != pending['commit'] or profile.get('needsSetup') or profile.get('accessMode') != 'INSTANCE_ACCESS_MODE_PRIVATE':

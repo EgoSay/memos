@@ -39,6 +39,20 @@ class BackupOverlapTest(unittest.TestCase):
    gate.wait_for_backup()
   self.assertEqual(sleep.call_count,2)
 
+class ReleaseReadinessTest(unittest.TestCase):
+ def test_http_ready_release_waits_for_docker_health_before_confirmation(self):
+  import json
+  from unittest.mock import patch
+  release={'digest':'sha256:'+'a'*64}
+  def inspect(*args):
+   if args[:3]==('docker','image','inspect'):return json.dumps([{'RepoDigests':['ghcr.io/egosay/memos-journal@'+release['digest']]}])
+   health=states.pop(0)
+   return json.dumps([{'Image':'new-image','State':{'Health':{'Status':health}}}])
+  states=['starting','healthy']
+  with patch.object(gate,'command',side_effect=inspect),patch.object(gate.time,'sleep') as sleep:
+   self.assertEqual(gate.wait_for_release(release)['State']['Health']['Status'],'healthy')
+  sleep.assert_called_once_with(2)
+
 class RollbackPreservationTest(unittest.TestCase):
  def test_new_content_and_unreadable_schemas_restart_service_without_replacing_data(self):
   import json
