@@ -21,7 +21,12 @@ is the deployment trigger. Set:
 ```dotenv
 MEMOS_INSTANCE_URL=https://journal.example.com
 MEMOS_IMAGE=ghcr.io/egosay/memos-journal:production
+MEMOS_TUNNEL_TOKEN=<dedicated remotely managed Cloudflare Tunnel token>
 ```
+
+Keep the tunnel token in Dokploy's environment, never in Git. Configure the
+tunnel origin as `http://memos:5230` only after owner initialization. It shares
+the Compose network and needs no published server port.
 
 The current CI image targets `linux/amd64`; confirm server architecture before
 deployment. The registry must permit the server to pull the image. The Compose
