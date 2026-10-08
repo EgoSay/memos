@@ -1,0 +1,65 @@
+name: Personal Journal Image
+
+on:
+  push:
+    branches: [codex/personal-life-journal]
+    paths-ignore: ["**.md"]
+  workflow_dispatch:
+
+concurrency:
+  group: personal-journal-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build metadata
+        id: metadata
+        shell: bash
+        run: |
+          echo "version=$(bash scripts/release_version.sh development-version)" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/memos-journal" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build complete application
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: scripts/Dockerfile.dokploy
+          platforms: linux/amd64
+          load: true
+          tags: journal:verify
+          build-args: |
+            VERSION=${{ steps.metadata.outputs.version }}
+            COMMIT=${{ github.sha }}
+          cache-from: type=gha,scope=journal
+          cache-to: type=gha,scope=journal,mode=max
+      - name: Verify bundled frontend and restart persistence
+        run: bash scripts/release_smoke_test.sh --candidate-image journal:verify --previous-image neosmemo/memos:0.31.0
+      - name: Publish verified image
+        env:
+          IMAGE: ${{ steps.metadata.outputs.image }}
+        run: |
+          docker tag journal:verify "$IMAGE:$GITHUB_SHA"
+          docker tag journal:verify "$IMAGE:production"
+          docker push "$IMAGE:$GITHUB_SHA"
+          docker push "$IMAGE:production"
+      - name: Notify Dokploy after image publication
+        env:
+          DEPLOY_WEBHOOK: ${{ secrets.MEMOS_DOKPLOY_DEPLOY_WEBHOOK }}
+        run: |
+          if [ -n "$DEPLOY_WEBHOOK" ]; then
+            curl --fail --silent --show-error --retry 2 -X POST "$DEPLOY_WEBHOOK"
+          fi
