@@ -69,12 +69,11 @@ jobs:
       - name: Prepare private deployment credentials
         id: credentials
         env:
-          DEPLOY_WEBHOOK: ${{ secrets.MEMOS_DOKPLOY_DEPLOY_WEBHOOK }}
           DEPLOY_KEY: ${{ secrets.MEMOS_PREDEPLOY_SSH_KEY }}
           KNOWN_HOSTS: ${{ secrets.MEMOS_DEPLOY_KNOWN_HOSTS }}
           DEPLOY_HOST: ${{ secrets.MEMOS_DEPLOY_HOST }}
         run: |
-          if [ -n "$DEPLOY_WEBHOOK" ] && [ -n "$DEPLOY_KEY" ] && [ -n "$KNOWN_HOSTS" ] && [ -n "$DEPLOY_HOST" ]; then
+          if [ -n "$DEPLOY_KEY" ] && [ -n "$KNOWN_HOSTS" ] && [ -n "$DEPLOY_HOST" ]; then
             python3 - <<'PY'
           import os, pathlib
           for name, env in [('memos-key', 'DEPLOY_KEY'), ('memos-hosts', 'KNOWN_HOSTS')]:
@@ -124,11 +123,6 @@ jobs:
           git -C production-state add scripts/compose.production.yaml .journal-release.json
           git -C production-state commit -m "Deploy verified journal $GITHUB_SHA"
           git -C production-state push origin HEAD:production/memos-journal
-      - name: Deploy verified declaration with Dokploy
-        if: steps.declaration.outcome == 'success'
-        env:
-          DEPLOY_WEBHOOK: ${{ secrets.MEMOS_DOKPLOY_DEPLOY_WEBHOOK }}
-        run: curl --fail --silent --show-error --retry 2 --output "$RUNNER_TEMP/memos-deployment-response" -X POST "$DEPLOY_WEBHOOK"
       - name: Verify public release and cancel rollback
         id: confirm
         if: steps.declaration.outcome == 'success'
@@ -151,13 +145,20 @@ jobs:
               raise SystemExit('Expected private production release did not become available')
           PY
           ssh -T -i "$RUNNER_TEMP/memos-key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/memos-hosts" -o ConnectTimeout=15 root@"$DEPLOY_HOST" confirm
-      - name: Restore previous declaration after failure
-        if: failure() && steps.declaration.outcome == 'success' && steps.confirm.outcome != 'success'
-        run: |
-          git -C production-state revert --no-edit HEAD
-          git -C production-state push origin HEAD:production/memos-journal
       - name: Roll back failed release without discarding new content
+        id: rollback
         if: failure() && steps.prepare.outcome == 'success' && steps.confirm.outcome != 'success'
         env:
           DEPLOY_HOST: ${{ secrets.MEMOS_DEPLOY_HOST }}
-        run: ssh -T -i "$RUNNER_TEMP/memos-key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/memos-hosts" -o ConnectTimeout=15 root@"$DEPLOY_HOST" rollback
+        run: |
+          ssh -T -i "$RUNNER_TEMP/memos-key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/memos-hosts" -o ConnectTimeout=15 root@"$DEPLOY_HOST" rollback > "$RUNNER_TEMP/memos-rollback.json"
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, pathlib
+          result = json.loads((pathlib.Path(os.environ['RUNNER_TEMP']) / 'memos-rollback.json').read_text())
+          print('restored=' + str(result.get('status') == 'rolled-back').lower())
+          PY
+      - name: Restore declaration only after safe data rollback
+        if: failure() && steps.declaration.outcome == 'success' && steps.rollback.outputs.restored == 'true'
+        run: |
+          git -C production-state revert --no-edit HEAD
+          git -C production-state push origin HEAD:production/memos-journal

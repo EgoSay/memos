@@ -10,8 +10,8 @@ node_modules and previously generated frontend files.
 `journal-image.yml` first reuses the frontend and backend CI, builds the image on GitHub, then runs the existing fresh-install,
 frontend, restart-persistence and upgrade smoke tests, and then publishes an
 immutable commit tag and the `production` tag. This avoids compiling on the
-application server. A configured `MEMOS_DOKPLOY_DEPLOY_WEBHOOK` repository secret
-triggers Dokploy only after publication; otherwise deployment is manual.
+application server. After the backup gate succeeds, CI pushes a pinned declaration
+to the separate production branch; Dokploy deploys only that branch.
 
 Configure Dokploy to read the `production/memos-journal` declaration branch,
 with path `./scripts/compose.production.yaml`. Development stays on
@@ -19,8 +19,11 @@ with path `./scripts/compose.production.yaml`. Development stays on
 image digest before enabling automatic deployment; CI updates only the pinned
 Compose file and its `.journal-release.json` identity. The parameterized
 `compose.dokploy.yaml` remains the template for controlled manual deployment.
-Disable the ordinary push-triggered autodeploy: the image publication webhook
-is the deployment trigger. Set:
+Enable push autodeploy only on `production/memos-journal`. Never point an
+autodeploying application at the development branch or the mutable `production`
+image tag. Dokploy 0.26.2 requires autoDeploy and a provider event for its generic
+webhook; an empty manual POST while autoDeploy is disabled returns 400. This
+pipeline instead uses the actual authenticated GitHub App push event. Set:
 
 ```dotenv
 MEMOS_INSTANCE_URL=https://journal.example.com
@@ -142,8 +145,8 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -v
 
 ### Verified production upgrades
 
-Configure GitHub Actions secrets `MEMOS_DOKPLOY_DEPLOY_WEBHOOK`,
-`MEMOS_PREDEPLOY_SSH_KEY`, `MEMOS_DEPLOY_KNOWN_HOSTS` and `MEMOS_DEPLOY_HOST`.
+Configure GitHub Actions secrets `MEMOS_PREDEPLOY_SSH_KEY`,
+`MEMOS_DEPLOY_KNOWN_HOSTS` and `MEMOS_DEPLOY_HOST`.
 The SSH public key must use `restrict` with the forced command
 `/usr/bin/python3 /opt/memos-backup/journal_release_gate.py`; it permits only
 `prepare`, `confirm` and `rollback`, never a shell or arbitrary target.
@@ -151,8 +154,8 @@ Install this script beside the backup modules on the approved Memos server.
 
 After all CI and image smoke checks pass, the gate stops only Memos writes,
 retains a verified local snapshot and completes encrypted R2 backup. The release
-declaration then pins the published digest and the Memos-only webhook deploys
-it. Public profile identity and private access are checked before confirmation;
+declaration then pins the published digest and its GitHub App push event deploys
+only the Memos Compose configured for that branch. Public profile identity and private access are checked before confirmation;
 confirmation also verifies the running digest and Docker health. An eight minute
 guard restores availability if the pipeline is interrupted; preparation itself
 has a six minute deadline. No whole-host restart is used.
