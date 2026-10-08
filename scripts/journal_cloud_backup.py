@@ -54,6 +54,7 @@ def publish_receipt(config: dict, receipt: dict) -> None:
     if config.get("reportUrl"):
         request = urllib.request.Request(config["reportUrl"], data=json.dumps(receipt).encode(),
                                          headers={"Content-Type": "application/json",
+                                                  "User-Agent": "Memos-Backup/1.0",
                                                   "Authorization": "Bearer " + config["reportToken"]}, method="POST")
         with urllib.request.urlopen(request, timeout=20) as response:
             if response.status != 200:

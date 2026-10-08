@@ -8,16 +8,21 @@ on:
 
 concurrency:
   group: personal-journal-production
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
+  frontend:
+    uses: ./.github/workflows/frontend-tests.yml
+  backend:
+    uses: ./.github/workflows/backend-tests.yml
   image:
+    needs: [frontend, backend]
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     steps:
       - uses: actions/checkout@v6
@@ -51,6 +56,7 @@ jobs:
       - name: Verify bundled frontend and restart persistence
         run: bash scripts/release_smoke_test.sh --candidate-image journal:verify --previous-image neosmemo/memos:0.31.0
       - name: Publish verified image
+        id: publish
         env:
           IMAGE: ${{ steps.metadata.outputs.image }}
         run: |
@@ -58,10 +64,99 @@ jobs:
           docker tag journal:verify "$IMAGE:production"
           docker push "$IMAGE:$GITHUB_SHA"
           docker push "$IMAGE:production"
-      - name: Notify Dokploy after image publication
+          digest=$(docker image inspect "$IMAGE:$GITHUB_SHA" --format '{{index .RepoDigests 0}}')
+          echo "digest=${digest#*@}" >> "$GITHUB_OUTPUT"
+      - name: Prepare private deployment credentials
+        id: credentials
         env:
           DEPLOY_WEBHOOK: ${{ secrets.MEMOS_DOKPLOY_DEPLOY_WEBHOOK }}
+          DEPLOY_KEY: ${{ secrets.MEMOS_PREDEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.MEMOS_DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ secrets.MEMOS_DEPLOY_HOST }}
         run: |
-          if [ -n "$DEPLOY_WEBHOOK" ]; then
-            curl --fail --silent --show-error --retry 2 -X POST "$DEPLOY_WEBHOOK"
+          if [ -n "$DEPLOY_WEBHOOK" ] && [ -n "$DEPLOY_KEY" ] && [ -n "$KNOWN_HOSTS" ] && [ -n "$DEPLOY_HOST" ]; then
+            python3 - <<'PY'
+          import os, pathlib
+          for name, env in [('memos-key', 'DEPLOY_KEY'), ('memos-hosts', 'KNOWN_HOSTS')]:
+              path = pathlib.Path(os.environ['RUNNER_TEMP']) / name
+              path.write_text(os.environ[env])
+              path.chmod(0o600)
+          PY
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
           fi
+      - name: Freeze writes and verify pre-upgrade backup
+        id: prepare
+        if: steps.credentials.outputs.enabled == 'true'
+        env:
+          RELEASE_COMMIT: ${{ github.sha }}
+          RELEASE_DIGEST: ${{ steps.publish.outputs.digest }}
+          DEPLOY_HOST: ${{ secrets.MEMOS_DEPLOY_HOST }}
+        run: |
+          python3 - <<'PY' > "$RUNNER_TEMP/memos-release.json"
+          import json, os
+          print(json.dumps({'commit': os.environ['RELEASE_COMMIT'], 'digest': os.environ['RELEASE_DIGEST']}))
+          PY
+          ssh -T -i "$RUNNER_TEMP/memos-key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/memos-hosts" -o ConnectTimeout=15 root@"$DEPLOY_HOST" prepare < "$RUNNER_TEMP/memos-release.json"
+      - uses: actions/checkout@v6
+        if: steps.prepare.outcome == 'success'
+        with:
+          ref: production/memos-journal
+          path: production-state
+      - name: Publish fixed deployment declaration
+        id: declaration
+        if: steps.prepare.outcome == 'success'
+        env:
+          RELEASE_COMMIT: ${{ github.sha }}
+          RELEASE_DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, re
+          digest = os.environ['RELEASE_DIGEST']
+          assert re.fullmatch('sha256:[a-f0-9]{64}', digest)
+          source = pathlib.Path('scripts/compose.dokploy.yaml').read_text()
+          pinned = re.sub(r'(?m)^    image: .*$', '    image: ghcr.io/egosay/memos-journal@' + digest, source, count=1)
+          pathlib.Path('production-state/scripts/compose.production.yaml').write_text(pinned)
+          pathlib.Path('production-state/.journal-release.json').write_text(json.dumps({'commit': os.environ['RELEASE_COMMIT'], 'digest': digest}))
+          PY
+          git -C production-state config user.name github-actions[bot]
+          git -C production-state config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git -C production-state add scripts/compose.production.yaml .journal-release.json
+          git -C production-state commit -m "Deploy verified journal $GITHUB_SHA"
+          git -C production-state push origin HEAD:production/memos-journal
+      - name: Deploy verified declaration with Dokploy
+        if: steps.declaration.outcome == 'success'
+        env:
+          DEPLOY_WEBHOOK: ${{ secrets.MEMOS_DOKPLOY_DEPLOY_WEBHOOK }}
+        run: curl --fail --silent --show-error --retry 2 --output "$RUNNER_TEMP/memos-deployment-response" -X POST "$DEPLOY_WEBHOOK"
+      - name: Verify public release and cancel rollback
+        id: confirm
+        if: steps.declaration.outcome == 'success'
+        env:
+          DEPLOY_HOST: ${{ secrets.MEMOS_DEPLOY_HOST }}
+        run: |
+          python3 - <<'PY'
+          import json, os, time, urllib.request
+          for attempt in range(60):
+              try:
+                  request = urllib.request.Request('https://memos.cjwdream.top/api/v1/instance/profile', headers={'User-Agent': 'Memos-Deploy/1.0'})
+                  with urllib.request.urlopen(request, timeout=10) as response:
+                      profile = json.load(response)
+                  if profile.get('commit') == os.environ['GITHUB_SHA'] and profile.get('accessMode') == 'INSTANCE_ACCESS_MODE_PRIVATE' and not profile.get('needsSetup'):
+                      break
+              except Exception:
+                  pass
+              time.sleep(3)
+          else:
+              raise SystemExit('Expected private production release did not become available')
+          PY
+          ssh -T -i "$RUNNER_TEMP/memos-key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/memos-hosts" -o ConnectTimeout=15 root@"$DEPLOY_HOST" confirm
+      - name: Restore previous declaration after failure
+        if: failure() && steps.declaration.outcome == 'success' && steps.confirm.outcome != 'success'
+        run: |
+          git -C production-state revert --no-edit HEAD
+          git -C production-state push origin HEAD:production/memos-journal
+      - name: Roll back failed release without discarding new content
+        if: failure() && steps.prepare.outcome == 'success' && steps.confirm.outcome != 'success'
+        env:
+          DEPLOY_HOST: ${{ secrets.MEMOS_DEPLOY_HOST }}
+        run: ssh -T -i "$RUNNER_TEMP/memos-key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/memos-hosts" -o ConnectTimeout=15 root@"$DEPLOY_HOST" rollback

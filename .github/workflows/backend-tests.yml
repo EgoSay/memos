@@ -1,6 +1,7 @@
 name: Backend Tests
 
 on:
+  workflow_call:
   push:
     branches: [main]
   pull_request:
@@ -11,7 +12,7 @@ on:
       - "**.go"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-backend-${{ github.ref }}
   cancel-in-progress: true
 
 env:

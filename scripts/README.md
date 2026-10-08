@@ -7,14 +7,18 @@ node_modules and previously generated frontend files.
 
 ## Personal journal deployment
 
-`journal-image.yml` builds the image on GitHub, runs the existing fresh-install,
+`journal-image.yml` first reuses the frontend and backend CI, builds the image on GitHub, then runs the existing fresh-install,
 frontend, restart-persistence and upgrade smoke tests, and then publishes an
 immutable commit tag and the `production` tag. This avoids compiling on the
 application server. A configured `MEMOS_DOKPLOY_DEPLOY_WEBHOOK` repository secret
 triggers Dokploy only after publication; otherwise deployment is manual.
 
-Configure a Dokploy Docker Compose service for this repository and the
-`codex/personal-life-journal` branch, with path `./scripts/compose.dokploy.yaml`.
+Configure Dokploy to read the `production/memos-journal` declaration branch,
+with path `./scripts/compose.production.yaml`. Development stays on
+`codex/personal-life-journal`. Initialize the declaration branch with a verified
+image digest before enabling automatic deployment; CI updates only the pinned
+Compose file and its `.journal-release.json` identity. The parameterized
+`compose.dokploy.yaml` remains the template for controlled manual deployment.
 Disable the ordinary push-triggered autodeploy: the image publication webhook
 is the deployment trigger. Set:
 
@@ -46,9 +50,10 @@ bash scripts/release_smoke_test.sh \
   --candidate-image journal:verify --previous-image neosmemo/memos:0.31.0
 ```
 
-For rollback, set `MEMOS_IMAGE` to the previous verified commit tag and redeploy.
-Do not roll back across an incompatible database migration without restoring
-an independently verified snapshot into a new volume.
+For a manual rollback, update the declaration branch to the previous verified
+image digest and redeploy; the pinned production Compose does not use the
+`MEMOS_IMAGE` template variable. Do not roll back across an incompatible database
+migration without restoring an independently verified snapshot into a new volume.
 
 ## Backups
 
@@ -134,3 +139,29 @@ Run backup consistency and failure-path tests with:
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -v
 ```
+
+### Verified production upgrades
+
+Configure GitHub Actions secrets `MEMOS_DOKPLOY_DEPLOY_WEBHOOK`,
+`MEMOS_PREDEPLOY_SSH_KEY`, `MEMOS_DEPLOY_KNOWN_HOSTS` and `MEMOS_DEPLOY_HOST`.
+The SSH public key must use `restrict` with the forced command
+`/usr/bin/python3 /opt/memos-backup/journal_release_gate.py`; it permits only
+`prepare`, `confirm` and `rollback`, never a shell or arbitrary target.
+Install this script beside the backup modules on the approved Memos server.
+
+After all CI and image smoke checks pass, the gate stops only Memos writes,
+retains a verified local snapshot and completes encrypted R2 backup. The release
+declaration then pins the published digest and the Memos-only webhook deploys
+it. Public profile identity and private access are checked before confirmation;
+confirmation also verifies the running digest and Docker health. An eight minute
+guard restores availability if the pipeline is interrupted; preparation itself
+has a six minute deadline. No whole-host restart is used.
+
+Rollback restores the previous snapshot and exact image only while the logical
+database and its shape are unchanged. If the new version accepted content,
+changed account/settings state or transformed tables, it preserves current data and reports a blocked
+rollback instead of erasing changes or guessing schema compatibility. Inspect
+private release receipts in `/var/lib/memos-release` in that case. The latest
+three local preparation snapshots are retained; R2 follows its separate policy.
+The rollback logic must be exercised and the full pipeline must succeed in the
+actual environment before declaring automated releases ready.

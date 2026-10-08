@@ -1,6 +1,7 @@
 name: Frontend Tests
 
 on:
+  workflow_call:
   push:
     branches: [main]
   pull_request:
@@ -9,7 +10,7 @@ on:
       - "web/**"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-frontend-${{ github.ref }}
   cancel-in-progress: true
 
 env:
