@@ -1,128 +1,96 @@
 ---
 name: release
 description: >
-  Own a Memos release end to end: pick the next CalVer tag, verify the candidate
-  commit, draft release notes, push the tag, watch the Release workflow, recover
-  from failures, verify published binaries and images, and publish the notes.
-  Use when the user asks to cut, ship, promote, or check a Memos release or
-  release candidate. Do not use for canary images or demo deploys.
+  Release the private journal fork through a CalVer tag: verify the candidate,
+  push an authorized tag, watch Personal Journal Image, and verify the deployed
+  source commit and image digest. Use for an explicitly requested Memos release
+  or release candidate; changing release configuration is not itself a release.
 metadata:
-  owner: "boojack"
-  version: "1.0.0"
-  last-reviewed: "2026-10-02"
+  owner: "EgoSay"
+  version: "2.0.0"
+  last-reviewed: "2026-10-09"
 ---
 
-# Release
+# Private journal release
 
-Pushing a tag is the only release action. `.github/workflows/release.yml` then runs the upgrade smoke test, builds binaries and
-checksums, publishes the GitHub Release, and pushes `neosmemo/memos` and `ghcr.io/usememos/memos` images. Your job is everything
-around that tag: choose it, gate it, explain it, watch it, and prove the result.
+Pushing a `YY.MM[.N][-rc.N]` tag triggers `.github/workflows/journal-image.yml`.
+The workflow validates the version, runs frontend/backend checks, builds and
+smoke-tests the complete image, publishes to `ghcr.io/egosay/memos-journal`,
+verifies the pre-upgrade snapshot/R2 backup, and updates the pinned
+`production/memos-journal` declaration for Dokploy. It confirms the public
+source identity and server image health before completing the deployment.
 
-## Ground Rules
+The upstream Canary, Release, Render demo and stale-item workflows are retired.
+Do not invoke `release.yml`, publish to `neosmemo/memos` or
+`ghcr.io/usememos/memos`, or claim this fork builds upstream binary archives.
+The journal workflow does not create a GitHub Release page.
 
-- Never release from the user's working tree. Tag a commit SHA that is on `origin/main`; uncommitted or unpushed local work is
-  not part of the release. Do not stash, commit, push to main, or rebase for a release.
-- A request to run this skill authorizes fetching, dispatching `release.yml` or `upgrade-smoke.yml` on main, rerunning failed
-  jobs, and editing the notes of the release you created. Reading the skill authorizes nothing.
-- Pushing the tag publishes to GitHub, Docker Hub, and GHCR. Before that push, show the plan and wait for an explicit go, unless
-  the user's request already named the tag (or "next rc"/"next stable") and said to proceed without asking.
-- Never delete, move, or force-push a pushed tag, and never delete a published release or image, without the user's explicit
-  approval for that specific tag. The default recovery is the next tag number.
-- Use lightweight tags (`git tag <tag> <sha>`), matching existing tags.
+## Candidate and authorization
 
-## 1. Establish State
+- Inspect the actual remote refs and existing tags. Default to a reviewed
+  `origin/main` commit unless the user specified another candidate. Any branch
+  is supported; being reachable from main is not a release requirement.
+- The candidate must contain the current tag-triggered journal workflow and
+  the removal of upstream release workflows. An old commit may still contain
+  old branch/tag triggers, so do not treat its configuration as current.
+- Use an explicit pushed commit SHA, never uncommitted working-tree contents.
+  Do not stash, rebase or discard user changes to prepare a release.
+- Apply the user's existing authorization. A request to adjust the workflow
+  does not authorize publishing a version tag or deploying the application.
+  If release authorization is missing, prepare the candidate, tag and checks
+  before requesting it. Do not ask again if the release is already authorized.
+- Both stable and `-rc.N` tags use the production pipeline. An RC is not a
+  preview environment or a dry run.
+- Never delete, move or force-push an existing version tag without explicit
+  authorization for that tag. Prefer a new version after a source correction.
 
-```bash
-git fetch origin --tags --prune
-git rev-parse origin/main
-bash scripts/release_version.sh previous-tag .   # last stable before HEAD; run in a checkout of the candidate
-gh release list --limit 10
-```
+## Validate and publish a tag
 
-Record: candidate SHA (default `origin/main`), the last stable tag, any release candidates after it and the commits they point
-to, and whether the working tree differs from the candidate (mention it; do not touch it).
-
-## 2. Choose the Tag
-
-Format is `YY.MM[.N][-rc.N]` (validated by `scripts/release_version.sh` and `internal/version`). `YY.MM` is the current UTC month.
-
-- **New stable:** `YY.MM` if no stable tag exists for this month, else `YY.MM.<N+1>`.
-- **New release candidate:** the next stable version plus `-rc.<N+1>`, counting existing candidates for that version.
-- **Promote a candidate:** the candidate's base version, tagged on the candidate's commit. Promotion keeps the base version
-  even if the month has changed. If main moved past the candidate, ask whether to promote the candidate commit or cut a new
-  candidate from main.
-
-Recommend a candidate first when the range since the last stable includes migrations (`store/migration/`), proto API changes,
-auth or permission changes, or more than a few weeks of features. Patch releases with only fixes can go straight to stable.
-
-## 3. Gate the Candidate
-
-All must pass before you propose the tag:
-
-1. The tag does not exist locally or on origin, and no release with that name exists.
-2. The candidate SHA is reachable from `origin/main`.
-3. CI is green. Push to main runs Backend Tests, Frontend Tests, and Proto Linter on every commit:
-   `gh run list --commit <sha> --json name,status,conclusion`. Require each of those three to be `completed/success`. Wait for
-   in-progress runs; a failure blocks the release.
-4. For a stable tag that is not a promotion, do a dry run first: `gh workflow run release.yml --ref main`, confirm the run's
-   `headSha` is the candidate, and wait for success. The dry run runs the upgrade smoke and every binary build without
-   publishing, so a failing build costs no tag number. Skip it for candidates and promotions, which act as their own dry run.
-
-## 4. Draft the Notes
-
-Write notes for the range from the last stable tag to the candidate, following [release-notes.md](references/release-notes.md).
-Read the commits, the merged PRs (`gh pr view`), and the diff for migrations, proto changes, configuration flags, and removed
-behavior. Save the draft in a temporary directory outside the repo.
-
-## 5. Propose, Then Tag
-
-Show the user: tag, candidate SHA and subject, last stable tag, commit count, gate results, image tags that will move (from
-`bash scripts/release_version.sh image-tags <tag>`), and the drafted notes. After an explicit go:
+1. Fetch the relevant remote refs and inspect tags. Validate the chosen version
+   with `bash scripts/release_version.sh version <tag>`; use the existing
+   `YY.MM[.N][-rc.N]` convention, such as `26.10.1` or `26.10-rc.1`.
+2. Confirm the tag is unused and points to the intended reviewed commit.
+   Inspect available CI results for that exact commit; run relevant checks
+   when missing. Upgrade checks can be run through `upgrade-smoke.yml` on the
+   candidate ref. There is no manual dispatch for the production workflow.
+3. Check the current production declaration and the required deployment
+   credentials without displaying secret values. Missing deployment credentials
+   cause the workflow to publish only the image, so a green run alone is not
+   proof of an application deployment.
+4. With release authorization, create a lightweight or annotated tag on the
+   explicit commit and push only that tag. The workflow resolves the checked-out
+   commit for both tag types and embeds the tag as the application version.
 
 ```bash
-git tag <tag> <sha>
-git push origin <tag>
+git tag -a VERSION REVIEWED_COMMIT -m "Journal VERSION"
+git push origin refs/tags/VERSION
 ```
 
-## 6. Watch the Release Run
+## Observe and verify
 
-Find the run with `gh run list --workflow release.yml --event push --limit 5` and match `headBranch` to the tag. Watch it until it
-completes. The jobs are upgrade-smoke, Extract Version, Build Frontend, six binary builds, Generate Checksums, Publish GitHub
-Release, three image builds, and Publish Release Image Tags.
+Find the `journal-image.yml` push run matching the tag. Verify the tag, resolved
+commit, image version and digest agree. Confirm the production declaration,
+public profile and server deployment receipt identify that commit and digest,
+and that backup scheduling resumed. The workflow publishes version, commit and
+`production` image tags; deployment uses the immutable digest.
 
-On failure, read the failed job's log (`gh run view <id> --log-failed`) and classify it:
+Do not equate an image publication, HTTP response, or green build with verified
+production deployment. Distinguish the workflow configuration check, actual
+release execution, server confirmation, and user product acceptance.
 
-- **Infrastructure** (runner loss, network timeout, registry rate limit or 5xx, action download failure): `gh run rerun <id>
-  --failed`. Retry at most twice per run.
-- **Defect** (test failure, compile error, smoke assertion, bad Dockerfile): stop. Do not rerun. Report the failing step,
-  root cause, and the files involved. The fix lands on main through the normal workflow; after it is green, offer the next
-  tag (next candidate number or next patch). The failed tag stays as is.
-- **Partial publish** (GitHub Release published but images failed, or the reverse): report exactly which surfaces exist. Rerun
-  only the failed jobs; they are idempotent for the same tag.
+## Failure and recovery
 
-## 7. Verify the Published Release
+Read the failed step and private receipts before deciding the next action.
+Rerun a transiently failed job only when the release state makes it safe; do not
+blindly retry backup/prepare steps while a pending release exists. For a source
+change, use a newly reviewed commit and a new version tag.
 
-Do not report success until each check passes:
+Follow `scripts/README.md` for rollback. The pending-release gate protects new
+writes and schema changes; revert the production declaration only after safe
+data rollback is confirmed, because that push triggers Dokploy. Confirmed-release
+recovery requires a separate compatibility/data assessment. Known rollback
+edge cases are tracked in issues #21 and #23 until resolved.
 
-1. `gh release view <tag> --json isPrerelease,isLatest,assets`: prerelease is true only for `-rc` tags, latest is true only for
-   stable tags, and assets are exactly six archives (`linux_amd64`, `linux_arm64`, `linux_armv7`, `darwin_amd64`,
-   `darwin_arm64`, `windows_amd64.zip`) plus `checksums.txt`.
-2. Download `checksums.txt` and the archive for this machine into a temporary directory. Check it with `sha256sum -c` (or
-   `shasum -a 256 -c`) against its line, then extract and run `./memos --version`, which must print the tag.
-3. `docker buildx imagetools inspect neosmemo/memos:<tag>` and `ghcr.io/usememos/memos:<tag>`: both list `linux/amd64`,
-   `linux/arm64`, and `linux/arm/v7`. For stable tags, `stable` and the series tag (when it differs from the tag) resolve to the
-   same digest as `<tag>`.
-4. If Docker can run locally, `./scripts/release_smoke_test.sh --candidate-image neosmemo/memos:<tag>` tests the published
-   image. If Docker is unavailable, say so; do not skip it silently.
-
-## 8. Publish the Notes
-
-The workflow publishes GitHub-generated notes. Replace them with your draft, keeping the generated `## New Contributors` section
-and `**Full Changelog**` line at the end: `gh release edit <tag> --notes-file <draft>`. Then read the release page back and check
-that links resolve to the right PRs and commits.
-
-## 9. Report
-
-Give the release URL, tag, SHA, image tags and digest, verification results, any reruns and why, and anything not done. Out of
-scope for this skill: announcements, website or docs updates, and the demo deploy (`demo-deploy.yml`, manual dispatch). List
-them as follow-ups for the user rather than doing them.
+Report the version tag, source commit, run URL, image digest, deployment and
+backup verification, and any remaining limits. Creating or editing GitHub
+Release notes is separate work unless the user requested it.

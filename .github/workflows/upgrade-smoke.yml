@@ -28,12 +28,12 @@ on:
       - "scripts/release_smoke_test.sh"
       - "scripts/release_version*"
       - "scripts/install*"
-      - ".github/workflows/release.yml"
+      - ".github/workflows/journal-image.yml"
       - ".github/workflows/upgrade-smoke.yml"
 
 concurrency:
   # Keep this distinct from a caller's concurrency group when the workflow is
-  # invoked from release.yml; sharing a group with cancel-in-progress would
+  # invoked from another workflow; sharing a group with cancel-in-progress would
   # cancel the parent release workflow.
   group: ${{ github.workflow }}-upgrade-smoke-${{ github.ref }}
   cancel-in-progress: true
