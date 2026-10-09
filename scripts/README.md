@@ -53,10 +53,15 @@ bash scripts/release_smoke_test.sh \
   --candidate-image journal:verify --previous-image neosmemo/memos:0.31.0
 ```
 
-For a manual rollback, update the declaration branch to the previous verified
-image digest and redeploy; the pinned production Compose does not use the
-`MEMOS_IMAGE` template variable. Do not roll back across an incompatible database
-migration without restoring an independently verified snapshot into a new volume.
+For a failed pending release, use the restricted rollback gate described below
+before changing the declaration branch: pushing that branch triggers deployment.
+Only revert its declaration after the gate confirms a safe data rollback. If the
+database changed or the outcome is unknown, preserve it and inspect the private
+release receipts. A rollback after an already confirmed release needs a separate
+compatibility and data-recovery assessment; do not invoke the pending-release gate
+as a general restore tool. The pinned production Compose does not use the
+`MEMOS_IMAGE` template variable. Do not run an older image against an incompatible
+migration or overwrite new writes; restore into a new volume when recovery is needed.
 
 ## Backups
 
