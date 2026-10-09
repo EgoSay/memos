@@ -1,21 +1,32 @@
 # Deployment and recovery tools
 
-`Dockerfile` supports the existing release pipeline, which builds the frontend
+`Dockerfile` supports local builds and upgrade smoke checks that build the frontend
 before building the Go image. `Dockerfile.dokploy` builds both from a clean Git
 checkout. Its separate context allowlist excludes local data, secrets,
 node_modules and previously generated frontend files.
 
 ## Personal journal deployment
 
-`journal-image.yml` first reuses the frontend and backend CI, builds the image on GitHub, then runs the existing fresh-install,
-frontend, restart-persistence and upgrade smoke tests, and then publishes an
-immutable commit tag and the `production` tag. This avoids compiling on the
+`journal-image.yml` runs only when a release tag is pushed. Tags use the existing
+`YY.MM[.N][-rc.N]` format, for example `26.10`, `26.10.1` or `26.10-rc.1`;
+`v1.0.0` is not an application version supported by this fork. A tag may point
+to a commit on any branch, provided that commit contains this workflow. Branch
+pushes, PR merges, tag deletions and GitHub Release description edits do not
+deploy. There is no manual workflow-dispatch entry point; rerun a failed tag run
+when appropriate. Release-candidate tags also use this production pipeline.
+
+The workflow validates the tag before starting the frontend and backend CI,
+builds the image on GitHub, runs the existing fresh-install, frontend,
+restart-persistence and upgrade smoke tests, and publishes the release version,
+source commit and `production` image tags to `ghcr.io/egosay/memos-journal`.
+The application version comes from the release tag; the source identity always
+uses the checked-out commit, including for annotated tags. This avoids compiling on the
 application server. After the backup gate succeeds, CI pushes a pinned declaration
 to the separate production branch; Dokploy deploys only that branch.
 
 Configure Dokploy to read the `production/memos-journal` declaration branch,
-with path `./scripts/compose.production.yaml`. Development stays on
-`codex/personal-life-journal`. Initialize the declaration branch with a verified
+with path `./scripts/compose.production.yaml`. Development can use any branch;
+merging into `main` runs checks but does not deploy. Initialize the declaration branch with a verified
 image digest before enabling automatic deployment; CI updates only the pinned
 Compose file and its `.journal-release.json` identity. The parameterized
 `compose.dokploy.yaml` remains the template for controlled manual deployment.
@@ -30,6 +41,27 @@ MEMOS_INSTANCE_URL=https://journal.example.com
 MEMOS_IMAGE=ghcr.io/egosay/memos-journal:production
 MEMOS_TUNNEL_TOKEN=<dedicated remotely managed Cloudflare Tunnel token>
 ```
+
+For an explicitly authorized release, tag the reviewed source commit and push
+that one tag (replace the example version and commit before running):
+
+```bash
+bash scripts/release_version.sh version 26.10.1
+git tag -a 26.10.1 REVIEWED_COMMIT -m "Journal 26.10.1"
+git push origin refs/tags/26.10.1
+```
+
+Pushing the tag starts a real production deployment, including for `-rc.N` tags;
+it is not a dry run. Tags must include the current workflow configuration. Do
+not move a published tag or tag an old commit that still contains the retired
+upstream release workflows. This pipeline publishes our image and deploys the
+site; it does not create upstream binary packages or a GitHub Release page.
+
+The fork's upstream Canary image, Release, Render demo and stale-item workflows
+have been removed. Keep frontend, backend, Proto and upgrade checks. In GitHub
+Actions settings, keep the legacy `Build Canary Image` workflow disabled so its
+historical workflow versions cannot publish. No workflow automatically closes
+inactive issues or PRs.
 
 Keep the tunnel token in Dokploy's environment, never in Git. Configure the
 tunnel origin as `http://memos:5230` only after owner initialization. It shares

@@ -1,10 +1,10 @@
 name: Personal Journal Image
+run-name: Deploy journal ${{ github.ref_name }}
 
 on:
   push:
-    branches: [codex/personal-life-journal]
-    paths-ignore: ["**.md"]
-  workflow_dispatch:
+    # The parser below validates YY.MM[.N][-rc.N]; tags may point to any branch.
+    tags: ["[1-9][0-9].*"]
 
 concurrency:
   group: personal-journal-production
@@ -14,12 +14,33 @@ permissions:
   contents: read
 
 jobs:
+  release:
+    if: github.event.deleted == false
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.metadata.outputs.version }}
+      commit: ${{ steps.metadata.outputs.commit }}
+      image: ${{ steps.metadata.outputs.image }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate release tag and resolve source commit
+        id: metadata
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          bash scripts/release_version.sh version "$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          # Use the checked-out commit for both lightweight and annotated tags.
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          owner=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          echo "image=ghcr.io/$owner/memos-journal" >> "$GITHUB_OUTPUT"
   frontend:
+    needs: release
     uses: ./.github/workflows/frontend-tests.yml
   backend:
+    needs: release
     uses: ./.github/workflows/backend-tests.yml
   image:
-    needs: [frontend, backend]
+    needs: [release, frontend, backend]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -28,12 +49,6 @@ jobs:
       - uses: actions/checkout@v6
       - name: Verify snapshot consistency and backup failure handling
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -v
-      - name: Build metadata
-        id: metadata
-        shell: bash
-        run: |
-          echo "version=$(bash scripts/release_version.sh development-version)" >> "$GITHUB_OUTPUT"
-          echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/memos-journal" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -49,8 +64,8 @@ jobs:
           load: true
           tags: journal:verify
           build-args: |
-            VERSION=${{ steps.metadata.outputs.version }}
-            COMMIT=${{ github.sha }}
+            VERSION=${{ needs.release.outputs.version }}
+            COMMIT=${{ needs.release.outputs.commit }}
           cache-from: type=gha,scope=journal
           cache-to: type=gha,scope=journal,mode=max
       - name: Verify bundled frontend and restart persistence
@@ -58,13 +73,17 @@ jobs:
       - name: Publish verified image
         id: publish
         env:
-          IMAGE: ${{ steps.metadata.outputs.image }}
+          IMAGE: ${{ needs.release.outputs.image }}
+          RELEASE_VERSION: ${{ needs.release.outputs.version }}
+          RELEASE_COMMIT: ${{ needs.release.outputs.commit }}
         run: |
-          docker tag journal:verify "$IMAGE:$GITHUB_SHA"
+          docker tag journal:verify "$IMAGE:$RELEASE_VERSION"
+          docker tag journal:verify "$IMAGE:$RELEASE_COMMIT"
           docker tag journal:verify "$IMAGE:production"
-          docker push "$IMAGE:$GITHUB_SHA"
+          docker push "$IMAGE:$RELEASE_VERSION"
+          docker push "$IMAGE:$RELEASE_COMMIT"
           docker push "$IMAGE:production"
-          digest=$(docker image inspect "$IMAGE:$GITHUB_SHA" --format '{{index .RepoDigests 0}}')
+          digest=$(docker image inspect "$IMAGE:$RELEASE_VERSION" --format '{{index .RepoDigests 0}}')
           echo "digest=${digest#*@}" >> "$GITHUB_OUTPUT"
       - name: Prepare private deployment credentials
         id: credentials
@@ -88,7 +107,7 @@ jobs:
         id: prepare
         if: steps.credentials.outputs.enabled == 'true'
         env:
-          RELEASE_COMMIT: ${{ github.sha }}
+          RELEASE_COMMIT: ${{ needs.release.outputs.commit }}
           RELEASE_DIGEST: ${{ steps.publish.outputs.digest }}
           DEPLOY_HOST: ${{ secrets.MEMOS_DEPLOY_HOST }}
         run: |
@@ -106,7 +125,8 @@ jobs:
         id: declaration
         if: steps.prepare.outcome == 'success'
         env:
-          RELEASE_COMMIT: ${{ github.sha }}
+          RELEASE_COMMIT: ${{ needs.release.outputs.commit }}
+          RELEASE_VERSION: ${{ needs.release.outputs.version }}
           RELEASE_DIGEST: ${{ steps.publish.outputs.digest }}
         run: |
           python3 - <<'PY'
@@ -121,13 +141,14 @@ jobs:
           git -C production-state config user.name github-actions[bot]
           git -C production-state config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git -C production-state add scripts/compose.production.yaml .journal-release.json
-          git -C production-state commit -m "Deploy verified journal $GITHUB_SHA"
+          git -C production-state commit -m "Deploy verified journal $RELEASE_VERSION ($RELEASE_COMMIT)"
           git -C production-state push origin HEAD:production/memos-journal
       - name: Verify public release and cancel rollback
         id: confirm
         if: steps.declaration.outcome == 'success'
         env:
           DEPLOY_HOST: ${{ secrets.MEMOS_DEPLOY_HOST }}
+          RELEASE_COMMIT: ${{ needs.release.outputs.commit }}
         run: |
           python3 - <<'PY'
           import json, os, time, urllib.request
@@ -136,7 +157,7 @@ jobs:
                   request = urllib.request.Request('https://memos.cjwdream.top/api/v1/instance/profile', headers={'User-Agent': 'Memos-Deploy/1.0'})
                   with urllib.request.urlopen(request, timeout=10) as response:
                       profile = json.load(response)
-                  if profile.get('commit') == os.environ['GITHUB_SHA'] and profile.get('accessMode') == 'INSTANCE_ACCESS_MODE_PRIVATE' and not profile.get('needsSetup'):
+                  if profile.get('commit') == os.environ['RELEASE_COMMIT'] and profile.get('accessMode') == 'INSTANCE_ACCESS_MODE_PRIVATE' and not profile.get('needsSetup'):
                       break
               except Exception:
                   pass

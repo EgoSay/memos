@@ -140,7 +140,8 @@ Black-box service tests live in `server/api/v1/test/`, unit tests next to the co
 ## CI Reference
 
 - Releases are cut by pushing a `YY.MM[.N][-rc.N]` tag. To cut, promote, or check a release, follow
-  `.agents/skills/release/SKILL.md`.
+  `.agents/skills/release/SKILL.md`. `journal-image.yml` deploys the tagged commit from any branch;
+  ordinary branch pushes and PR merges never start production deployment. RC tags deploy too.
 - Development builds use the HEAD committer date in UTC as `YY.MM`; release builds inject the CalVer tag.
 - `go build` embeds Git metadata automatically; `go run` needs `-buildvcs=true`. Builds without Git metadata must inject
   `github.com/usememos/memos/internal/version.Version` through `-ldflags`.
