@@ -1,8 +1,11 @@
 import { create } from "@bufbuild/protobuf";
 import { FieldMaskSchema, timestampDate, timestampFromDate } from "@bufbuild/protobuf/wkt";
+import { Code, ConnectError } from "@connectrpc/connect";
 import { isEqual } from "lodash-es";
 import { getEditorReferenceRelations } from "@/components/MemoMetadata/Relation/relationHelpers";
 import { memoServiceClient } from "@/connect";
+import { finishPartitionSave } from "@/hooks/useJournalPartitionQueries";
+import { journalRecordVersion } from "@/lib/journal-record-version";
 import type { Attachment } from "@/types/proto/api/v1/attachment_service_pb";
 import { AttachmentSchema } from "@/types/proto/api/v1/attachment_service_pb";
 import type { Memo } from "@/types/proto/api/v1/memo_service_pb";
@@ -84,6 +87,16 @@ function buildUpdateMask(
   return { mask, patch };
 }
 
+async function finishJournalSave(state: EditorState, memoName: string): Promise<string | undefined> {
+  if (state.metadata.journalPartitionId === undefined || state.metadata.journalPartitionSuspended) return undefined;
+  try {
+    await finishPartitionSave(memoName, state.metadata.journalPartitionId, state.metadata.journalPartitionExplicit ?? false);
+  } catch (error) {
+    return `正文和附件已保存，分区同步尚未完成：${error instanceof Error ? error.message : "请到分区设置重试"}`;
+  }
+  return undefined;
+}
+
 export const memoService = {
   async save(
     state: EditorState,
@@ -92,7 +105,7 @@ export const memoService = {
       parentMemoName?: string;
       space?: string;
     },
-  ): Promise<{ memoName: string; hasChanges: boolean; moved?: boolean }> {
+  ): Promise<{ memoName: string; hasChanges: boolean; moved?: boolean; syncError?: string }> {
     // 1. Upload local files first
     const newAttachments = await uploadService.uploadFiles(state.localFiles);
     const allAttachments = [...state.metadata.attachments, ...newAttachments];
@@ -100,17 +113,42 @@ export const memoService = {
     // 2. Update existing memo
     if (options.memoName) {
       const prevMemo = await memoServiceClient.getMemo({ name: options.memoName });
-      const { mask, patch } = buildUpdateMask(prevMemo, state, allAttachments);
+      const baseline = state.baselineMemo ?? prevMemo;
+      if (
+        state.baselineMemo &&
+        (!isEqual(prevMemo.content, baseline.content) ||
+          !isEqual(prevMemo.attachments, baseline.attachments) ||
+          !isEqual(prevMemo.location, baseline.location) ||
+          !isEqual(prevMemo.createTime, baseline.createTime) ||
+          prevMemo.visibility !== baseline.visibility ||
+          prevMemo.space !== baseline.space)
+      ) {
+        throw new ConnectError(
+          "这条记录已在其他页面或设备修改。当前输入已保留，请复制后重新打开记录，查看双方内容再决定如何合并。",
+          Code.Aborted,
+        );
+      }
+      const { mask, patch } = buildUpdateMask(baseline, state, allAttachments);
 
       if (mask.size === 0) {
         return { memoName: prevMemo.name, hasChanges: false };
       }
 
-      const memo = await memoServiceClient.updateMemo({
-        memo: create(MemoSchema, patch as Record<string, unknown>),
-        updateMask: create(FieldMaskSchema, { paths: Array.from(mask) }),
-      });
-      return { memoName: memo.name, hasChanges: true, moved: mask.has("space") };
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(baseline.content));
+      const expectedContent = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+      const memo = await memoServiceClient.updateMemo(
+        {
+          memo: create(MemoSchema, patch as Record<string, unknown>),
+          updateMask: create(FieldMaskSchema, { paths: Array.from(mask) }),
+        },
+        {
+          headers: {
+            "X-Memos-Expected-Content-Sha256": expectedContent,
+            "X-Memos-Expected-Record-Sha256": await journalRecordVersion(baseline),
+          },
+        },
+      );
+      return { memoName: memo.name, hasChanges: true, moved: mask.has("space"), syncError: await finishJournalSave(state, memo.name) };
     }
 
     // 3. Create new memo or comment
@@ -125,14 +163,29 @@ export const memoService = {
       space: options.parentMemoName ? undefined : (options.space ?? state.metadata.space),
     });
 
-    const memo = options.parentMemoName
-      ? await memoServiceClient.createMemoComment({
-          name: options.parentMemoName,
-          comment: memoData,
-        })
-      : await memoServiceClient.createMemo({ memo: memoData });
+    let memo: Memo;
+    try {
+      memo = options.parentMemoName
+        ? await memoServiceClient.createMemoComment({
+            name: options.parentMemoName,
+            comment: memoData,
+          })
+        : await memoServiceClient.createMemo({ memo: memoData, memoId: state.clientId });
+    } catch (error) {
+      if (options.parentMemoName || !state.clientId || ConnectError.from(error).code !== Code.AlreadyExists) throw error;
+      // A lost success response is resolved by the stable client ID. Never
+      // claim a mismatched record as this save's result.
+      const existing = await memoServiceClient.getMemo({ name: `memos/${state.clientId}` });
+      if (
+        existing.content !== memoData.content ||
+        existing.visibility !== memoData.visibility ||
+        !isEqual(existing.attachments.map((item) => item.name).sort(), allAttachments.map((item) => item.name).sort())
+      )
+        throw error;
+      memo = existing;
+    }
 
-    return { memoName: memo.name, hasChanges: true };
+    return { memoName: memo.name, hasChanges: true, syncError: await finishJournalSave(state, memo.name) };
   },
 
   /**
@@ -140,8 +193,9 @@ export const memoService = {
    * request). Returns only the fields the reducer's INIT_MEMO case consumes —
    * UI state (mode, loading flags, …) is owned by the reducer, not by memos.
    */
-  fromMemo(memo: Memo): Pick<EditorState, "content" | "metadata" | "timestamps"> {
+  fromMemo(memo: Memo): Pick<EditorState, "content" | "metadata" | "timestamps" | "baselineMemo"> {
     return {
+      baselineMemo: memo,
       content: memo.content,
       metadata: {
         visibility: memo.visibility,

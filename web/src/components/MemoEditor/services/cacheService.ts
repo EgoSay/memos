@@ -87,10 +87,22 @@ function serializeDraft({ content, attachments, location, space, visibility }: E
 }
 
 function writeEntry(key: string, draft: EditorDraft): void {
-  if (draft.content.trim() || draft.attachments.length > 0 || draft.space) {
-    localStorage.setItem(key, serializeDraft(draft));
-  } else {
-    localStorage.removeItem(key);
+  try {
+    if (draft.content.trim() || draft.attachments.length > 0 || draft.space) {
+      localStorage.setItem(key, serializeDraft(draft));
+    } else {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    /* The durable IndexedDB draft reports persistence status independently. */
+  }
+}
+
+function readEntry(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
   }
 }
 
@@ -125,12 +137,12 @@ export const cacheService = {
   },
 
   load(key: string): string {
-    const raw = localStorage.getItem(key);
+    const raw = readEntry(key);
     return raw ? deserializeDraft(raw).content : "";
   },
 
   loadDraft(key: string): EditorDraft {
-    const raw = localStorage.getItem(key);
+    const raw = readEntry(key);
     return raw ? deserializeDraft(raw) : { content: "", attachments: [] };
   },
 
@@ -149,7 +161,11 @@ export const cacheService = {
       pendingSaves.delete(key);
     }
 
-    localStorage.removeItem(key);
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      /* IndexedDB is authoritative. */
+    }
     cursors.delete(key);
   },
 

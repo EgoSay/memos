@@ -680,6 +680,13 @@ func (s *FileServerService) checkAttachmentPermission(ctx context.Context, c *ec
 		return access.MemoReadClassPrivate, echo.NewHTTPError(http.StatusNotFound, "memo not found")
 	}
 
+	trash, err := s.Store.GetJournalDocument(ctx, memo.CreatorID, "trash", memo.UID)
+	if err != nil {
+		return access.MemoReadClassPrivate, echo.NewHTTPError(http.StatusInternalServerError, "failed to inspect record lifecycle")
+	}
+	if trash != nil {
+		return access.MemoReadClassPrivate, echo.NewHTTPError(http.StatusNotFound, "memo not found")
+	}
 	allowAnonymous, err := s.Store.AllowsAnonymousAccess(ctx)
 	if err != nil {
 		return access.MemoReadClassPrivate, echo.NewHTTPError(http.StatusInternalServerError, "failed to get instance access policy").Wrap(err)

@@ -47,7 +47,7 @@ func TestFreshInstall(t *testing.T) {
 	// Verify migration completed successfully
 	currentSchemaVersion, err := ts.GetCurrentSchemaVersion()
 	require.NoError(t, err)
-	require.Equal(t, "0.31.8", currentSchemaVersion, "fresh install should start at the retained baseline")
+	require.Equal(t, "26.10.1", currentSchemaVersion, "fresh install includes the personal journal document schema")
 
 	// Verify we can read instance settings (basic sanity check)
 	instanceSetting, err := ts.GetInstanceBasicSetting(ctx)

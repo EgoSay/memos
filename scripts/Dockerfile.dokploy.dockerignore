@@ -1,0 +1,25 @@
+# An allowlist prevents local databases, backups, secrets and generated assets
+# from entering the production build context.
+**
+!go.mod
+!go.sum
+!cmd/**
+!core/**
+!filter/**
+!internal/**
+!markdown/**
+!proto/**
+!provider/**
+!server/**
+!store/**
+!web/**
+!scripts/
+!scripts/entrypoint.sh
+!scripts/Dockerfile.dokploy
+!scripts/Dockerfile.dokploy.dockerignore
+**/node_modules/**
+**/dist/**
+**/.env
+**/.env.*
+**/.DS_Store
+web/coverage/**

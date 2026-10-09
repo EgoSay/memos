@@ -8,12 +8,14 @@ import { RouterProvider } from "react-router-dom";
 import "./i18n";
 import "./index.css";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import JournalStartup from "@/components/JournalStartup";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { refreshAccessToken } from "@/connect";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { InstanceProvider, useInstance } from "@/contexts/InstanceContext";
 import { useLiveMemoRefresh } from "@/hooks/useLiveMemoRefresh";
 import { useTokenRefreshOnFocus } from "@/hooks/useTokenRefreshOnFocus";
+import { registerJournalShell } from "@/lib/journal-shell";
 import { queryClient } from "@/lib/query-client";
 import router from "./router";
 import { applyLocaleEarly } from "./utils/i18n";
@@ -61,27 +63,29 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
 function Main() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <InstanceProvider>
-          <AuthProvider>
-            <TooltipProvider>
-              <AppInitializer>
-                <RouterProvider router={router} />
-                <Toaster
-                  position="top-right"
-                  toastOptions={{
-                    style: {
-                      background: "var(--popover)",
-                      color: "var(--popover-foreground)",
-                    },
-                  }}
-                />
-              </AppInitializer>
-            </TooltipProvider>
-          </AuthProvider>
-        </InstanceProvider>
-        <ReactQueryDevtools initialIsOpen={false} />
-      </QueryClientProvider>
+      <JournalStartup>
+        <QueryClientProvider client={queryClient}>
+          <InstanceProvider>
+            <AuthProvider>
+              <TooltipProvider>
+                <AppInitializer>
+                  <RouterProvider router={router} />
+                  <Toaster
+                    position="top-right"
+                    toastOptions={{
+                      style: {
+                        background: "var(--popover)",
+                        color: "var(--popover-foreground)",
+                      },
+                    }}
+                  />
+                </AppInitializer>
+              </TooltipProvider>
+            </AuthProvider>
+          </InstanceProvider>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+      </JournalStartup>
     </ErrorBoundary>
   );
 }
@@ -89,3 +93,5 @@ function Main() {
 const container = document.getElementById("root");
 const root = createRoot(container as HTMLElement);
 root.render(<Main />);
+
+void registerJournalShell();

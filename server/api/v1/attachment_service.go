@@ -9,6 +9,7 @@ import (
 	"math"
 	"mime"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -209,6 +210,29 @@ type attachmentSource interface {
 // the content, and creates the database row. create.Size must hold the source
 // length on entry; it is updated when stripping re-encodes the image.
 func (s *APIV1Service) processAndSaveAttachment(ctx context.Context, create *store.Attachment, instanceStorageSetting *storepb.InstanceStorageSetting, source attachmentSource) (*v1pb.Attachment, error) {
+	existingOriginalOwner, existingErr := s.Store.GetAttachment(ctx, &store.FindAttachment{UID: &create.UID})
+	if existingErr != nil {
+		return nil, status.Errorf(codes.Internal, "failed to inspect attachment id: %v", existingErr)
+	}
+	if existingOriginalOwner != nil {
+		return nil, status.Error(codes.AlreadyExists, "attachment id already exists")
+	}
+	originalPath, err := preserveAttachmentOriginal(ctx, s.Profile.Data, create, source)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to preserve attachment original: %v", err)
+	}
+	succeeded := false
+	defer func() {
+		if succeeded {
+			return
+		}
+		// A transport error can follow a committed create. Keep its original.
+		existing, lookupErr := s.Store.GetAttachment(context.WithoutCancel(ctx), &store.FindAttachment{UID: &create.UID})
+		if lookupErr == nil && existing == nil {
+			_ = os.Remove(originalPath)
+		}
+	}()
+
 	if create.Payload.GetMotionMedia() == nil && (create.Type == "image/jpeg" || create.Type == "image/jpg") {
 		detected, err := motionphoto.DetectJPEGReader(source, create.Size)
 		if err != nil {
@@ -260,7 +284,9 @@ func (s *APIV1Service) processAndSaveAttachment(ctx context.Context, create *sto
 	if err := saveAttachmentContent(ctx, s.Profile, s.Store, create, instanceStorageSetting, content); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to save attachment blob: %v", err)
 	}
-	return s.persistAttachment(ctx, create, instanceStorageSetting)
+	saved, err := s.persistAttachment(ctx, create, instanceStorageSetting)
+	succeeded = err == nil
+	return saved, err
 }
 
 func (s *APIV1Service) persistAttachment(ctx context.Context, create *store.Attachment, instanceStorageSetting *storepb.InstanceStorageSetting) (*v1pb.Attachment, error) {

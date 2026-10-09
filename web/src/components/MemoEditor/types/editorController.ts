@@ -23,6 +23,8 @@ export interface EditorController {
   hasChecklist(): boolean;
   /** Insert a tag at the caret without replacing selected text, then advance the caret. Returns whether it was inserted. */
   insertTag(tag: string): boolean;
+  /** Start a tag at the caret, preserving surrounding text and leaving the caret directly after #. */
+  startTag(): void;
   createUploadAnchor(descriptor: UploadAnchorDescriptor, position?: number): void;
   updateUploadAnchor(descriptor: UploadAnchorDescriptor): void;
   resolveUploadAnchor(id: string, markdown: string): void;

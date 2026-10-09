@@ -50,6 +50,19 @@ describe("memo detail access recovery", () => {
     state.listMemoComments.mockResolvedValue({ memos: [], nextPageToken: "" });
   });
 
+  it("does not fetch or register social comments for the owner's original journal record", async () => {
+    state.currentUser = { name: "users/alice" };
+    const client = createClient();
+    state.getMemo.mockResolvedValue(create(MemoSchema, { name: "memos/diary", creator: "users/alice", content: "普通的一天" }));
+    renderDetail(client, "memos/diary");
+    await screen.findByText("普通的一天");
+    expect(state.listMemoComments).not.toHaveBeenCalled();
+    expect(state.setMemoDetail).toHaveBeenLastCalledWith(
+      expect.objectContaining({ privateDiary: true, commentCount: undefined, onCommentsOpen: undefined, onCommentCreate: undefined }),
+    );
+    client.clear();
+  });
+
   it.each(["fresh", "stale"])("revalidates a %s cached denial before showing a restored memo", async (freshness) => {
     const client = createClient();
     const name = "memos/restored";

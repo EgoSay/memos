@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { getMemoPartition } from "@/hooks/useJournalPartitionQueries";
+import { journalDrafts, restoreJournalState } from "@/lib/journal-drafts";
 import type { Location, Memo, Visibility } from "@/types/proto/api/v1/memo_service_pb";
 import { cacheService, memoService } from "../services";
 import { useEditorContext } from "../state";
@@ -27,7 +29,7 @@ export const useMemoInit = ({
   defaultLocation,
   canChooseSpace = false,
 }: UseMemoInitOptions) => {
-  const { actions, dispatch } = useEditorContext();
+  const { actions, dispatch, getState } = useEditorContext();
   const initializedRef = useRef(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -38,8 +40,15 @@ export const useMemoInit = ({
 
     if (memo) {
       const initialState = memoService.fromMemo(memo);
-      cacheService.clear(key);
       dispatch(actions.initMemo(initialState));
+      void getMemoPartition(memo.name)
+        .then((mapping) => {
+          if (getState().metadata.journalPartitionId === undefined)
+            dispatch(
+              actions.setMetadata({ journalPartitionId: mapping.partitionId, journalPartitionSuspended: mapping.suspended ?? false }),
+            );
+        })
+        .catch(() => undefined);
     } else {
       const cachedDraft = cacheService.loadDraft(key);
       if (cachedDraft.content) {
@@ -74,7 +83,17 @@ export const useMemoInit = ({
       }, 100);
     }
 
-    setIsInitialized(true);
+    // The durable copy includes File bytes and the original edit baseline.
+    // Prefer it only before editing begins; initialization gates autosave.
+    if (typeof indexedDB === "undefined") setIsInitialized(true);
+    else
+      void journalDrafts
+        .get(key)
+        .then((draft) => {
+          if (draft?.owner === username) dispatch(actions.restoreDraft(restoreJournalState(draft)));
+        })
+        .catch(() => undefined)
+        .finally(() => setIsInitialized(true));
     return () => {
       if (restoreCursorTimer) {
         clearTimeout(restoreCursorTimer);
@@ -92,6 +111,7 @@ export const useMemoInit = ({
     actions,
     dispatch,
     editorRef,
+    getState,
   ]);
 
   return { isInitialized };

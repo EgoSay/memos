@@ -218,3 +218,5 @@ it("removing a Members memo from its Space falls back to Private without discard
   expect(getState!().metadata.visibility).toBe(Visibility.PRIVATE);
   expect(getState!().content).toBe("Keep this draft");
 });
+
+vi.mock("@/components/Journal/PartitionPicker", () => ({ default: () => null }));

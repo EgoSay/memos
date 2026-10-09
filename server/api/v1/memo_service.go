@@ -2,17 +2,22 @@ package v1
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	stderrors "errors"
 	"log/slog"
+	"os"
 	"time"
 
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/usememos/memos/core/access"
+	"github.com/usememos/memos/core/journal"
 	"github.com/usememos/memos/core/memopayload"
 	"github.com/usememos/memos/internal/ratelimit"
 	v1pb "github.com/usememos/memos/proto/gen/api/v1"
@@ -47,7 +52,21 @@ func (s *APIV1Service) CreateMemo(ctx context.Context, request *v1pb.CreateMemoR
 		return nil, err
 	}
 
+	// Persist the actual entry time separately from a user-selected record date.
+	// Reserving before the memo transaction means a retry can never report a
+	// saved record while silently omitting its first entry timestamp.
+	provenance, err := s.reserveJournalProvenance(ctx, user.ID, memoUID)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := s.createMemoWithMutation(ctx, user, prepared.memo, nil, prepared.attachments, prepared.requiredAttachmentIDs, prepared.referenceRelations); err != nil {
+		if provenance != nil {
+			existing, findErr := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})
+			if findErr == nil && (existing == nil || existing.CreatorID != user.ID) {
+				_ = s.Store.DeleteJournalDocument(ctx, user.ID, "provenance", memoUID, provenance.Version)
+			}
+		}
 		return nil, mapMemoCreateError(err, memoUID, "failed to create memo")
 	}
 	memo := prepared.memo
@@ -364,6 +383,34 @@ func (s *APIV1Service) UpdateMemo(ctx context.Context, request *v1pb.UpdateMemoR
 		return nil, status.Errorf(codes.InvalidArgument, "unassigning a memo with SPACE visibility requires a replacement visibility")
 	}
 	update.Policy = memoWritePolicy(user.ID, lifecycleOnly)
+	trash, trashErr := s.Store.GetJournalDocument(ctx, memo.CreatorID, "trash", memo.UID)
+	if trashErr != nil {
+		return nil, status.Errorf(codes.Internal, "failed to inspect record lifecycle: %v", trashErr)
+	}
+	if trash != nil {
+		return nil, status.Error(codes.FailedPrecondition, "restore this record from recently deleted before editing")
+	}
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		if expected := md.Get("x-memos-expected-content-sha256"); len(expected) > 0 {
+			hash := sha256.Sum256([]byte(memo.Content))
+			if len(expected) != 1 || expected[0] != hex.EncodeToString(hash[:]) {
+				return nil, status.Error(codes.Aborted, "record changed on another device; local content was preserved")
+			}
+		}
+	}
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		if expected := md.Get("x-memos-expected-record-sha256"); len(expected) > 0 {
+			actual, err := s.journalRecordHash(ctx, memo)
+			if err != nil {
+				return nil, status.Error(codes.Internal, "failed to read record version")
+			}
+			if len(expected) != 1 || len(expected[0]) != 64 || expected[0] != actual {
+				return nil, status.Error(codes.Aborted, "record metadata or attachments changed; local content was preserved")
+			}
+			update.ExpectedRecordHash = expected[0]
+		}
+	}
+
 	previousContent := memo.Content
 	contentUpdated := false
 	attachmentsUpdated := false
@@ -463,7 +510,12 @@ func (s *APIV1Service) UpdateMemo(ctx context.Context, request *v1pb.UpdateMemoR
 		}
 	}
 
-	if contentUpdated || attachmentsUpdated || relationsUpdated {
+	if contentUpdated || attachmentsUpdated || updatePaths["location"] || updatePaths["create_time"] {
+		if err := s.captureJournalRevision(ctx, memo); err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to retain previous version: %v", err)
+		}
+	}
+	if contentUpdated || attachmentsUpdated || relationsUpdated || update.ExpectedRecordHash != "" {
 		var relations *[]*store.MemoRelation
 		if relationsUpdated {
 			relations = &preparedRelations
@@ -475,12 +527,31 @@ func (s *APIV1Service) UpdateMemo(ctx context.Context, request *v1pb.UpdateMemoR
 		return nil, mapMemoWriteError(err, "failed to update memo")
 	}
 
+	if contentUpdated || attachmentsUpdated || updatePaths["location"] || updatePaths["create_time"] || updatePaths["update_time"] || updatePaths["visibility"] || updatePaths["space"] {
+		if err := s.markJournalRecordModified(ctx, memo.CreatorID, memo.UID, time.Now().Unix()); err != nil {
+			return nil, status.Errorf(codes.Internal, "record was saved but its actual modification time could not be preserved: %v", err)
+		}
+	}
+
 	memo, commentContext, memoMessage, err := s.buildUpdatedMemoState(ctx, memo.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to build updated memo state")
 	}
 	if contentUpdated {
 		s.dispatchMemoMentionNotificationsBestEffort(ctx, memo, commentContext, previousContent)
+	}
+	if memo.RowStatus == store.Archived {
+		if err := s.revokeLegacyMemoShares(ctx, memo); err != nil {
+			return nil, err
+		}
+		if err := journal.RevokeMemoDerivatives(ctx, s.Store, memo.CreatorID, memo.UID); err != nil {
+			return nil, err
+		}
+		if err := s.cancelPartitionMemoDeliveries(ctx, memo.CreatorID, memo.UID); err != nil {
+			return nil, err
+		}
+	} else if err := s.enqueuePartitionMemo(ctx, memo.CreatorID, memo.UID, false); err != nil {
+		slog.Warn("Record saved but partition delivery could not be queued", slog.Any("err", err))
 	}
 	s.dispatchMemoUpdatedSideEffects(ctx, memoMessage)
 
@@ -532,6 +603,12 @@ func (s *APIV1Service) DeleteMemo(ctx context.Context, request *v1pb.DeleteMemoR
 		}
 	}
 
+	if err := journal.RevokeMemoDerivatives(ctx, s.Store, memo.CreatorID, memo.UID); err != nil {
+		return nil, err
+	}
+	if err := s.cancelPartitionMemoDeliveries(ctx, memo.CreatorID, memo.UID); err != nil {
+		return nil, err
+	}
 	deleteResult, err := s.Store.DeleteMemoWithPolicy(ctx, &store.DeleteMemoWithPolicy{MemoID: memo.ID, ActorUserID: user.ID})
 	if err != nil {
 		switch {
@@ -553,10 +630,23 @@ func (s *APIV1Service) DeleteMemo(ctx context.Context, request *v1pb.DeleteMemoR
 			slog.Warn("Failed to dispatch memo deleted webhook", slog.Any("err", err))
 		}
 	}
+	if err := s.purgeJournalRevisions(ctx, memo.CreatorID, memo.UID); err != nil {
+		return nil, err
+	}
 	if err := s.cleanupDeletedAttachmentStorage(ctx, deleteResult.Attachments); err != nil {
 		return nil, status.Errorf(codes.Internal, "memo was deleted but attachment storage cleanup failed: %v", err)
 	}
 
+	for _, attachment := range deleteResult.Attachments {
+		if path, err := attachmentOriginalPath(s.Profile.Data, attachment.UID); err == nil {
+			_ = os.Remove(path)
+		}
+	}
+	for _, kind := range []string{"trash", "provenance"} {
+		if err := s.Store.DeleteJournalDocument(ctx, memo.CreatorID, kind, memo.UID, -1); err != nil {
+			return nil, err
+		}
+	}
 	return &emptypb.Empty{}, nil
 }
 

@@ -65,10 +65,11 @@ const getExcerpt = (memo: Memo, tree: Root): CalendarDayExcerpt | undefined => {
       .join("\n")
       .trim() || (!memo.content.trim() ? memo.snippet.trim() : "");
   if (!text) return undefined;
+  const characters = Array.from(text);
   return {
     memoName: memo.name,
     creator: memo.creator,
-    text: text.length > 280 ? `${text.slice(0, 280).trimEnd()}…` : text,
+    text: characters.length > 280 ? `${characters.slice(0, 280).join("").trimEnd()}…` : text,
     isCode: readable[0]?.isCode ?? false,
   };
 };

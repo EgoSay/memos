@@ -25,6 +25,7 @@ import { useOverflowTitle } from "@/hooks";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { MEMO_COMMENTS_ANCHOR_ID } from "@/lib/memo-comments";
 import { cn } from "@/lib/utils";
+import { ROUTES } from "@/router/routes";
 import { State } from "@/types/proto/api/v1/common_pb";
 import { Memo, type MemoRelation, Visibility } from "@/types/proto/api/v1/memo_service_pb";
 import { useTranslate } from "@/utils/i18n";
@@ -45,6 +46,7 @@ interface Props {
   onCommentCreate?: () => void;
   onShareImageOpen?: () => void;
   forceReadonly?: boolean;
+  privateDiary?: boolean;
 }
 
 const normalizeSnippet = (value: string): string => value.replace(/\s+/g, " ").trim();
@@ -96,6 +98,7 @@ const MemoDetailSidebar = ({
   onCommentCreate,
   onShareImageOpen,
   forceReadonly = false,
+  privateDiary = false,
 }: Props) => {
   const t = useTranslate();
   const location = useLocation();
@@ -105,7 +108,7 @@ const MemoDetailSidebar = ({
 
   const readonly = forceReadonly || !canManageMemo(memo, currentUser);
   const canEdit = !!onEdit && !readonly && memo.state === State.NORMAL;
-  const canComment = !!onCommentCreate && !forceReadonly && !!currentUser && memo.state === State.NORMAL;
+  const canComment = !privateDiary && !!onCommentCreate && !forceReadonly && !!currentUser && memo.state === State.NORMAL;
   const canManageShares =
     !forceReadonly &&
     !memo.parent &&
@@ -117,13 +120,13 @@ const MemoDetailSidebar = ({
   const { referenced } = useMemo(() => getRelationBuckets(memo.relations, memo.name), [memo.relations, memo.name]);
   const backlinkMemoNames = useMemo(
     () =>
-      forceReadonly
+      forceReadonly || privateDiary
         ? []
         : referenced.flatMap((relation) => {
             const relatedMemo = getRelationMemo(relation, "referenced");
             return relatedMemo?.name ? [relatedMemo.name] : [];
           }),
-    [forceReadonly, referenced],
+    [forceReadonly, privateDiary, referenced],
   );
   const resolvedMemos = useResolvedRelationMemos(backlinkMemoNames);
 
@@ -136,9 +139,9 @@ const MemoDetailSidebar = ({
   };
 
   const parentSnippet = parentMemo ? normalizeSnippet(parentMemo.snippet || parentMemo.content || parentMemo.name) : "";
-  const showComments = !forceReadonly && commentCount !== undefined && commentCount > 0;
+  const showComments = !privateDiary && !forceReadonly && commentCount !== undefined && commentCount > 0;
   const showOnThisMemo = headings.length > 1 || showComments;
-  const showConnections = !forceReadonly && (!!parentMemo || !!parentStatus || referenced.length > 0);
+  const showConnections = !privateDiary && !forceReadonly && (!!parentMemo || !!parentStatus || referenced.length > 0);
 
   const handleCopyLink = () => {
     const host = (profile.instanceUrl || window.location.origin).replace(/\/+$/, "");
@@ -205,37 +208,47 @@ const MemoDetailSidebar = ({
       <SidebarSection label={t("common.actions")}>
         {canEdit && <SidebarRow icon={Edit3Icon} label={t("common.edit")} onClick={onEdit} />}
         {canComment && <SidebarRow icon={MessageSquarePlusIcon} label={t("memo.comment.write-a-comment")} onClick={onCommentCreate} />}
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            aria-label={t("common.share")}
-            className={cn(
-              SIDEBAR_ROW_CLASSES,
-              "text-muted-foreground hover:bg-sidebar-accent/65 hover:text-foreground data-popup-open:bg-sidebar-accent/65 data-popup-open:text-foreground",
-            )}
+        {privateDiary ? (
+          <Link
+            to={`${ROUTES.JOURNAL_SHARES}?${new URLSearchParams({ memo: memo.name })}`}
+            className={cn(SIDEBAR_ROW_CLASSES, "min-h-11 text-muted-foreground hover:text-foreground")}
           >
             <SidebarRowIconSlot icon={Share2Icon} />
-            <span className="min-w-0 flex-1 truncate text-start">{t("common.share")}</span>
-            <ChevronDownIcon className="size-3.5 shrink-0 opacity-55" strokeWidth={1.8} />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" sideOffset={4} className="w-48">
-            <DropdownMenuItem onClick={handleCopyLink}>
-              <LinkIcon />
-              {t("memo.copy-link")}
-            </DropdownMenuItem>
-            {onShareImageOpen && (
-              <DropdownMenuItem onClick={onShareImageOpen}>
-                <ImageIcon />
-                {t("memo.share.open-image")}
+            分享这条
+          </Link>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              aria-label={t("common.share")}
+              className={cn(
+                SIDEBAR_ROW_CLASSES,
+                "text-muted-foreground hover:bg-sidebar-accent/65 hover:text-foreground data-popup-open:bg-sidebar-accent/65 data-popup-open:text-foreground",
+              )}
+            >
+              <SidebarRowIconSlot icon={Share2Icon} />
+              <span className="min-w-0 flex-1 truncate text-start">{t("common.share")}</span>
+              <ChevronDownIcon className="size-3.5 shrink-0 opacity-55" strokeWidth={1.8} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" sideOffset={4} className="w-48">
+              <DropdownMenuItem onClick={handleCopyLink}>
+                <LinkIcon />
+                {t("memo.copy-link")}
               </DropdownMenuItem>
-            )}
-            {canManageShares && (
-              <DropdownMenuItem onClick={() => setSharePanelOpen(true)}>
-                <Share2Icon />
-                {t("memo.share.open-panel")}
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {onShareImageOpen && (
+                <DropdownMenuItem onClick={onShareImageOpen}>
+                  <ImageIcon />
+                  {t("memo.share.open-image")}
+                </DropdownMenuItem>
+              )}
+              {canManageShares && (
+                <DropdownMenuItem onClick={() => setSharePanelOpen(true)}>
+                  <Share2Icon />
+                  {t("memo.share.open-panel")}
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </SidebarSection>
 
       {sharePanelOpen && <MemoSharePanel memoName={memo.name} open={sharePanelOpen} onClose={() => setSharePanelOpen(false)} />}

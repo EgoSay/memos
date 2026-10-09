@@ -12,6 +12,7 @@ import AppSidebar, {
 import { AppSidebarProvider } from "@/contexts/AppSidebarContext";
 import { GlobalMemoEditorProvider } from "@/contexts/GlobalMemoEditorContext";
 import { useInstance } from "@/contexts/InstanceContext";
+import { JournalSessionProvider } from "@/contexts/JournalSessionContext";
 import { MemoFilterProvider, useMemoFilterContext } from "@/contexts/MemoFilterContext";
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import useCurrentUser from "@/hooks/useCurrentUser";
@@ -114,7 +115,9 @@ const RootLayout = () => (
     <MemoFilterProvider>
       <AppSidebarProvider>
         <GlobalMemoEditorProvider>
-          <RootLayoutContent />
+          <JournalSessionProvider>
+            <RootLayoutContent />
+          </JournalSessionProvider>
         </GlobalMemoEditorProvider>
       </AppSidebarProvider>
     </MemoFilterProvider>

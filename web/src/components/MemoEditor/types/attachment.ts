@@ -20,6 +20,7 @@ export interface AttachmentItem {
 }
 
 export interface LocalFile {
+  readonly clientId?: string;
   readonly file: File;
   readonly previewUrl: string;
   readonly origin?: "audio_recording" | "upload";

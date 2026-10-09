@@ -5,20 +5,20 @@ import { type MemoFilter, stringifyFilters, useMemoFilterContext } from "@/conte
 import useNavigateTo from "@/hooks/useNavigateTo";
 import { colorToHex } from "@/lib/color";
 import { tagStyles } from "@/lib/markdownStyles";
+import { isMemoCollectionRoute } from "@/lib/memo-views";
 import { findTagMetadata } from "@/lib/tag";
 import { cn } from "@/lib/utils";
 import { Routes } from "@/router";
-import { useMemoViewContext } from "../MemoView/MemoViewContext";
-import { isMemoResourcePath, withMemoFilter } from "../MemoView/navigation";
+import { withMemoFilter } from "../MemoView/navigation";
 
 interface TagProps extends React.HTMLAttributes<HTMLSpanElement> {
   node?: Element; // AST node from react-markdown
   "data-tag"?: string;
   children?: React.ReactNode;
+  parentPage?: string;
 }
 
-export const Tag: React.FC<TagProps> = ({ "data-tag": dataTag, children, className, style, node: _node, ...props }) => {
-  const { parentPage } = useMemoViewContext();
+export const Tag: React.FC<TagProps> = ({ "data-tag": dataTag, children, className, style, node: _node, parentPage, ...props }) => {
   const location = useLocation();
   const navigateTo = useNavigateTo();
   const { getFiltersByFactor, removeFilter, addFilter } = useMemoFilterContext();
@@ -43,9 +43,10 @@ export const Tag: React.FC<TagProps> = ({ "data-tag": dataTag, children, classNa
   const handleTagClick = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    // If the tag is clicked in a memo detail page, we should navigate to the memo list page.
-    if (isMemoResourcePath(location.pathname)) {
-      navigateTo(withMemoFilter(parentPage || Routes.HOME, stringifyFilters([{ factor: "tagSearch", value: tag }])));
+    // Detail and journal readers do not apply collection filters themselves.
+    if (!isMemoCollectionRoute(location.pathname)) {
+      const collection = parentPage && isMemoCollectionRoute(parentPage) ? parentPage : Routes.HOME;
+      navigateTo(withMemoFilter(collection, stringifyFilters([{ factor: "tagSearch", value: tag }])));
       return;
     }
 

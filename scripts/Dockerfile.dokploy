@@ -1,0 +1,44 @@
+# syntax=docker/dockerfile:1
+# Builds a complete private-journal image directly from a Git checkout.
+# Keep the release pipeline's prebuilt-frontend Dockerfile independent.
+FROM --platform=$BUILDPLATFORM node:24-alpine AS frontend
+WORKDIR /src/web
+RUN npm install --global pnpm@11.0.1
+COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml ./
+COPY web/patches ./patches
+RUN --mount=type=cache,id=memos-pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --store-dir=/pnpm/store
+COPY web/ ./
+RUN pnpm release
+
+FROM --platform=$BUILDPLATFORM golang:1.27.0-alpine AS backend
+WORKDIR /src
+RUN apk add --no-cache ca-certificates
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
+COPY . .
+COPY --from=frontend /src/server/frontend/dist ./server/frontend/dist
+ARG TARGETOS TARGETARCH VERSION COMMIT=unknown
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    : "${VERSION:?Pass the calendar version as a build argument}" && \
+    CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -trimpath \
+      -ldflags="-s -w -X github.com/usememos/memos/internal/version.Version=${VERSION} -X github.com/usememos/memos/internal/version.Commit=${COMMIT}" \
+      -tags netgo,osusergo -o /out/memos ./cmd/memos
+
+FROM alpine:3.21 AS runtime
+RUN apk add --no-cache tzdata ca-certificates su-exec && \
+    addgroup -g 10001 -S nonroot && \
+    adduser -u 10001 -S -G nonroot -h /var/opt/memos nonroot && \
+    mkdir -p /var/opt/memos /usr/local/memos && \
+    chown -R nonroot:nonroot /var/opt/memos
+COPY --from=backend /out/memos /usr/local/memos/memos
+COPY --chmod=755 scripts/entrypoint.sh /usr/local/memos/entrypoint.sh
+WORKDIR /var/opt/memos
+VOLUME /var/opt/memos
+ENV TZ="Asia/Shanghai" MEMOS_PORT="5230"
+EXPOSE 5230
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD wget -q -O /dev/null http://127.0.0.1:5230/healthz || exit 1
+ENTRYPOINT ["/usr/local/memos/entrypoint.sh", "/usr/local/memos/memos"]

@@ -133,8 +133,10 @@ eligibility/application in `EditorSuggestions`.
 
 Every instance is one of two things, and `onFocusModeExit` is the switch:
 
-- **Inline** (prop omitted) — the editor sits in page flow (Home composer, memo edit, comments) and owns its presentation. The ＋ menu offers the view toggles: focus mode expands the editor over the page and the formatting toolbar's trailing button minimizes it back in place, while the formatting-toolbar preference governs the normal-mode layout.
-- **Hosted** (prop supplied) — a host presents the editor full-screen and owns that frame; `contexts/GlobalMemoEditorContext.tsx` is the one today. The editor mounts straight into focus mode and exits by calling back to dismiss the host, so the formatting toolbar's trailing button reads as Close rather than minimize. The ＋ menu's view toggles are absent: focus mode is not the editor's to leave, and it already forces the formatting toolbar on.
+- **Inline** (prop omitted) — the editor sits in page flow (Home composer, memo edit, comments) and owns its presentation. The more menu offers the view toggles: focus mode expands the editor over the page and the formatting toolbar's trailing button minimizes it back in place, while the formatting-toolbar preference governs the normal-mode layout.
+- **Hosted** (prop supplied) — a host presents the editor full-screen and owns that frame; `contexts/GlobalMemoEditorContext.tsx` is the one today. The editor mounts straight into focus mode and exits by calling back to dismiss the host, so the formatting toolbar's trailing button reads as Close rather than minimize. The more menu's view toggles are absent: focus mode is not the editor's to leave, and it already forces the formatting toolbar on.
+
+Photos and audio recording are direct quiet toolbar actions. Less frequent actions, including starting a tag, remain in the more menu. `startTag()` inserts an inline `#` at the caret without replacing selected text and leaves the caret immediately after it; block-oriented `insertMarkdown()` retains its existing semantics. The optional personal-journal partition picker uses a compact menu and only shows a name after selection. Configured outgoing destinations remain visible beside the explicit “保存并同步” action.
 
 Those toggles travel as a single optional `viewToggles` object (`types/components.ts`) down `EditorToolbar` → `InsertMenu`, so they can only appear or disappear together.
 
@@ -174,3 +176,11 @@ Services are pure functions — easy to unit test without React.
 const state = createInitialState(); // from state/types.ts
 const result = await memoService.save(state, { memoName: 'memos/123' });
 ```
+
+## Personal journal durability
+
+`useDurableDraft` persists text, the original edit baseline and selected `File` bytes to owner-scoped IndexedDB entries. `journal-drafts.ts` serializes writes per key and reports success only after the transaction commits. Cleared or saved drafts are removed in that same ordering; unavailable/quota-exhausted storage never claims a successful local save. Explicit offline saves use a separate pending queue. `PendingRecords` resumes those saves with stable memo/attachment IDs and exposes cold-start offline drafts without replacing an occupied editor.
+
+The editor defaults to private and a fresh personal partition selection. Files are uploaded before the memo transaction and partition delivery is committed only after the entire memo has saved. Recording always keeps the audio file; transcription is a separately editable candidate and only enters the body after acceptance.
+
+Edits compare the originally opened record, including date, location and attachments. The client sends `X-Memos-Expected-Record-Sha256`; `lib/journal-record-version.ts` and `store.MemoRecordSnapshot.Hash` use a shared UTF-8 length-prefixed tuple with IEEE754 coordinate bits. The database drivers recheck that complete tuple under the memo mutation transaction, including for metadata-only changes. A conflict retains the local draft and opens a comparison; accepting a new baseline is an explicit action, with another comparison at save time. A shared hash vector and concurrent metadata mutation tests protect the protocol.

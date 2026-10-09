@@ -182,10 +182,10 @@ function SpaceSwitcher({ className, size = "md" }: { className?: string; size?: 
                         label={t("common.home")}
                       />
                       <BrowseLink
-                        to={getCreatorSwitchPath(location, undefined, currentUser.username)}
-                        current={!creatorUsername}
+                        to={ROUTES.JOURNAL}
+                        current={location.pathname.startsWith(ROUTES.JOURNAL)}
                         icon={CompassIcon}
-                        label={t("common.explore")}
+                        label="随便看看"
                       />
                     </nav>
                   </>

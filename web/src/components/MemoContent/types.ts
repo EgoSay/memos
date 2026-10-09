@@ -11,6 +11,8 @@ export interface MemoContentProps {
   parentPage?: string;
   /** The card renders collapsed (ClampedSection), so footnote links navigate instead of scrolling. */
   compact?: boolean;
+  /** Read-only originals render task status without requiring a mutable memo card. */
+  readonly?: boolean;
   className?: string;
   contentClassName?: string;
   onClick?: (e: React.MouseEvent) => void;

@@ -3,6 +3,7 @@ import { createContext, type ReactNode, useCallback, useContext, useMemo, useSta
 import { clearAccessToken, getAccessToken } from "@/auth-state";
 import { authServiceClient, refreshAccessToken, userServiceClient } from "@/connect";
 import { userKeys } from "@/hooks/useUserQueries";
+import { forgetJournalOwner, rememberJournalOwner } from "@/lib/journal-device";
 import type {
   User,
   UserSetting_GeneralSetting,
@@ -117,6 +118,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      rememberJournalOwner({ name: currentUser.name, username: currentUser.username });
+
       // Publish the verified identity immediately so route modules and their
       // data queries can start while display-sensitive settings are loading.
       setState((prev) => ({
@@ -151,6 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("[AuthContext] Failed to sign out:", error);
     } finally {
+      forgetJournalOwner();
       clearAccessToken();
       setState(UNAUTHENTICATED_STATE);
       queryClient.clear();

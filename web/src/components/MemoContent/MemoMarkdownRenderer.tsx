@@ -3,6 +3,7 @@ import { type ComponentProps, memo, type ReactNode, Suspense } from "react";
 import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
 import { buildRehypePlugins, buildRemarkPlugins } from "@/components/MemoContent/pipeline";
+import { Checkbox } from "@/components/ui/checkbox";
 import { isMentionElement, isTagElement, isTaskListItemElement } from "@/types/markdown";
 import type { Attachment } from "@/types/proto/api/v1/attachment_service_pb";
 import { lazyWithReload } from "@/utils/lazy";
@@ -41,6 +42,8 @@ export interface MemoMarkdownRendererProps {
   parentPage?: string;
   /** Whether the memo is rendered as a collapsed feed card. */
   compact?: boolean;
+  /** Display task state without mounting the mutable card's task handler. */
+  readonly?: boolean;
 }
 
 type RemarkPlugins = NonNullable<ComponentProps<typeof ReactMarkdown>["remarkPlugins"]>;
@@ -80,12 +83,14 @@ export const MemoMarkdownRendererCore = ({
   memoName,
   parentPage,
   compact,
+  readonly = false,
   mathRemarkPlugins = [],
   mathRehypePlugins = [],
 }: MemoMarkdownRendererCoreProps) => {
   const markdownComponents: Components = {
     input: ({ node, ...inputProps }) => {
       if (node && isTaskListItemElement(node)) {
+        if (readonly) return <Checkbox checked={Boolean(inputProps.checked)} disabled className={inputProps.className} />;
         return <TaskListItem {...inputProps} node={node} />;
       }
       return <input {...inputProps} />;
@@ -96,7 +101,7 @@ export const MemoMarkdownRendererCore = ({
         return <Mention {...spanProps} node={node} data-mention={username} resolved={resolvedMentionUsernames.has(username)} />;
       }
       if (node && isTagElement(node)) {
-        return <Tag {...spanProps} node={node} />;
+        return <Tag {...spanProps} node={node} parentPage={parentPage} />;
       }
       return <span {...spanProps} />;
     },
@@ -210,5 +215,6 @@ export const MemoMarkdownRenderer = memo(
     previous.memoName === next.memoName &&
     previous.parentPage === next.parentPage &&
     previous.compact === next.compact &&
+    previous.readonly === next.readonly &&
     haveEqualResolvedMentions(previous.resolvedMentionUsernames, next.resolvedMentionUsernames),
 );

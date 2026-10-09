@@ -1,6 +1,7 @@
 import { isValidElement } from "react";
 import { matchRoutes, type RouteObject } from "react-router-dom";
 import { describe, expect, it } from "vitest";
+import RootLayout from "@/layouts/RootLayout";
 import { ROUTES, routeConfig } from "@/router";
 import { RequireAuthRoute, RequireFullInitializationRoute, RequireGuestRoute, RequireInstanceInitializationRoute } from "@/router/guards";
 import { CALENDAR_ROUTE_PATTERN, SPACE_ROUTE_PATTERN } from "@/router/routes";
@@ -75,6 +76,29 @@ describe("router configuration", () => {
     for (const path of [ROUTES.ARCHIVED, ROUTES.VIEWS, ROUTES.ATTACHMENTS, ROUTES.INBOX, ROUTES.SETTING]) {
       expect(hasAncestorOfType(routeConfig, path, RequireAuthRoute)).toBe(true);
     }
+  });
+
+  it("keeps private journal review, wandering and date statistics behind authentication", () => {
+    for (const path of [
+      ROUTES.JOURNAL,
+      ROUTES.JOURNAL_REVIEW,
+      ROUTES.JOURNAL_WANDER,
+      ROUTES.JOURNAL_INSIGHTS,
+      ROUTES.JOURNAL_SHARES,
+      ROUTES.JOURNAL_PARTITIONS,
+      ROUTES.JOURNAL_TRASH,
+      ROUTES.JOURNAL_BACKUP,
+      `${ROUTES.JOURNAL}/day/:date`,
+    ]) {
+      expect(hasAncestorOfType(routeConfig, path, RequireAuthRoute)).toBe(true);
+    }
+  });
+
+  it("keeps the visitor share outside private navigation and authentication guards", () => {
+    const types = matchRoutes(routeConfig, "/s/unpredictable-token")?.map(({ route }) => elementType(route));
+    expect(types).not.toContain(RootLayout);
+    expect(types).not.toContain(RequireAuthRoute);
+    expect(findByPath(routeConfig, "/s/:token")).toBeDefined();
   });
 
   it("keeps non-feed pages behind their full initialization requirements", () => {

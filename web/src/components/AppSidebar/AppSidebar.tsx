@@ -3,7 +3,10 @@ import {
   ArchiveIcon,
   ArrowRightIcon,
   BellIcon,
+  BookOpenIcon,
   CalendarDaysIcon,
+  CompassIcon,
+  DatabaseIcon,
   FileAudioIcon,
   FileTextIcon,
   ImageIcon,
@@ -14,12 +17,17 @@ import {
   MenuIcon,
   PaperclipIcon,
   SearchIcon,
+  SettingsIcon,
+  Share2Icon,
+  ShuffleIcon,
+  SparklesIcon,
   SquarePenIcon,
   Trash2Icon,
   UserRoundIcon,
 } from "lucide-react";
 import { useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
+import JournalCalendar from "@/components/JournalCalendar";
 import { MAP_MEMO_FILTER } from "@/components/MapView/useMapMemos";
 import { MemoDetailSidebar } from "@/components/MemoDetailSidebar";
 import MemoDisplaySettingMenu from "@/components/MemoDisplaySettingMenu";
@@ -105,7 +113,11 @@ const CollectionSidebarContent = ({
     <div className={SIDEBAR_SECTION_STACK_CLASSES}>
       {showStatistics && (
         <SidebarSection ariaLabel={t("common.statistics")}>
-          <StatisticsView statisticsData={statistics} onDateSelect={() => setMobileOpen(false)} />
+          {currentUser ? (
+            <JournalCalendar onDateSelect={() => setMobileOpen(false)} />
+          ) : (
+            <StatisticsView statisticsData={statistics} onDateSelect={() => setMobileOpen(false)} />
+          )}
         </SidebarSection>
       )}
       {/* Every collection route narrows the same way: views (yours, so signed-in only), days, tags. */}
@@ -241,6 +253,7 @@ const MemoDetailSidebarContent = () => {
       parentPage={memoDetail.from}
       commentCount={memoDetail.commentCount}
       forceReadonly={memoDetail.readonly}
+      privateDiary={memoDetail.privateDiary}
       onEdit={runAndClose(memoDetail.onEdit)}
       onCommentsOpen={runAndClose(memoDetail.onCommentsOpen)}
       onCommentCreate={runAndClose(memoDetail.onCommentCreate)}
@@ -253,6 +266,7 @@ const MemoDetailSidebarContent = () => {
 const RouteSidebarContent = () => {
   const location = useLocation();
   const kind = getSidebarRouteKind(location.pathname);
+  if (kind === "journal") return <JournalSidebarContent />;
   if (kind === "home" || kind === "archived" || kind === "explore") {
     return <CollectionSidebarContent context={kind} />;
   }
@@ -265,6 +279,31 @@ const RouteSidebarContent = () => {
   if (kind === "memo") return <MemoDetailSidebarContent />;
   if (kind === "common") return <CommonSidebarContent />;
   return null;
+};
+
+const JournalSidebarContent = () => {
+  const location = useLocation();
+  const { setMobileOpen } = useAppSidebar();
+  return (
+    <SidebarSection ariaLabel="随便看看">
+      {[
+        { to: ROUTES.JOURNAL_REVIEW, label: "每日回顾", icon: BookOpenIcon },
+        { to: ROUTES.JOURNAL_WANDER, label: "随机漫步", icon: ShuffleIcon },
+        { to: ROUTES.JOURNAL_INSIGHTS, label: "AI 洞察", icon: SparklesIcon },
+      ].map(({ to, label, icon: Icon }) => (
+        <Link
+          key={to}
+          to={to}
+          onClick={() => setMobileOpen(false)}
+          aria-current={location.pathname === to ? "page" : undefined}
+          className={cn(SIDEBAR_ROW_CLASSES, "min-h-11", sidebarRowStateClasses(location.pathname === to ? "current" : "idle"))}
+        >
+          <Icon className="mr-2 size-4 text-muted-foreground" />
+          <span>{label}</span>
+        </Link>
+      ))}
+    </SidebarSection>
+  );
 };
 
 /** Collection views beside Timeline. Attachments is a library of the user's own files, so guests get the reading views only. */
@@ -342,7 +381,7 @@ const GlobalNavigation = () => {
   const timelineRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const currentUser = useCurrentUser();
-  const { setQuickFindOpen } = useAppSidebar();
+  const { setQuickFindOpen, setMobileOpen } = useAppSidebar();
   const routeKind = getSidebarRouteKind(location.pathname);
   const timelineActive = routeKind === "home" || routeKind === "explore";
   const destinations = NAV_DESTINATIONS.filter((destination) => currentUser || !destination.signedInOnly);
@@ -352,11 +391,11 @@ const GlobalNavigation = () => {
 
   return (
     <TooltipProvider>
-      <nav className={cn("@container flex h-7 items-center gap-1", SIDEBAR_RAIL_CLASSES)} aria-label="Primary">
+      <nav className={cn("@container flex h-7 items-center gap-1", SIDEBAR_RAIL_CLASSES)} aria-label={currentUser ? "主要导航" : "Primary"}>
         <div ref={timelineRef} className={cn("flex shrink-0 items-center rounded-md", timelineActive && sidebarRowStateClasses("current"))}>
           <NavPill
             to={navigationPath(ROUTES.HOME)}
-            label={t("common.timeline")}
+            label={currentUser ? t("memo.layout-list") : t("common.timeline")}
             icon={LibraryIcon}
             active={timelineActive}
             expanded={expandedKind === "timeline"}
@@ -374,8 +413,29 @@ const GlobalNavigation = () => {
             expanded={destination.kind === expandedKind}
           />
         ))}
-        <NavPill label={t("common.search")} icon={SearchIcon} onClick={() => setQuickFindOpen(true)} className="ms-auto" />
+        <NavPill
+          label={currentUser ? "查找记录" : t("common.search")}
+          icon={SearchIcon}
+          onClick={() => setQuickFindOpen(true)}
+          className="ms-auto"
+        />
       </nav>
+      {currentUser && (
+        <div className={cn("mt-2", SIDEBAR_RAIL_CLASSES)}>
+          <Link
+            to={ROUTES.JOURNAL}
+            onClick={() => setMobileOpen(false)}
+            aria-current={routeKind === "journal" && !location.pathname.includes("/day/") ? "page" : undefined}
+            className={cn(
+              SIDEBAR_ROW_CLASSES,
+              sidebarRowStateClasses(routeKind === "journal" && !location.pathname.includes("/day/") ? "current" : "idle"),
+            )}
+          >
+            <SidebarRowIconSlot icon={CompassIcon} />
+            <span>随便看看</span>
+          </Link>
+        </div>
+      )}
     </TooltipProvider>
   );
 };
@@ -396,6 +456,27 @@ const AppSidebar = ({ className }: { className?: string }) => {
       <div className={cn("min-h-0 flex-1 overflow-y-auto overflow-x-hidden pt-2 pb-3 [scrollbar-width:thin]", SIDEBAR_RAIL_CLASSES)}>
         <RouteSidebarContent />
       </div>
+      {currentUser && (
+        <footer className="shrink-0 border-t border-border/60 p-3">
+          {[
+            { to: ROUTES.JOURNAL_PARTITIONS, label: "分区与同步", icon: LibraryIcon },
+            { to: ROUTES.JOURNAL_SHARES, label: "我的分享", icon: Share2Icon },
+            { to: ROUTES.JOURNAL_TRASH, label: "最近删除", icon: Trash2Icon },
+            { to: ROUTES.JOURNAL_BACKUP, label: "数据与备份", icon: DatabaseIcon },
+            { to: ROUTES.SETTING, label: "设置", icon: SettingsIcon },
+          ].map(({ to, label, icon: Icon }) => (
+            <Link
+              key={to}
+              to={to}
+              onClick={() => setMobileOpen(false)}
+              className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm text-muted-foreground hover:bg-sidebar-accent/70 focus-visible:outline-2"
+            >
+              <Icon className="size-4" strokeWidth={1.6} />
+              {label}
+            </Link>
+          ))}
+        </footer>
+      )}
       {!currentUser && (
         <footer className="shrink-0 border-t border-border/70">
           <Link
@@ -426,12 +507,47 @@ const AppSidebar = ({ className }: { className?: string }) => {
 
 export const MobileAppHeader = () => {
   const { setMobileOpen } = useAppSidebar();
+  const user = useCurrentUser();
+  const location = useLocation();
+  const journalActive = location.pathname.startsWith(ROUTES.JOURNAL) && !location.pathname.includes("/day/");
   return (
     <header className="sticky top-0 z-20 flex h-12 w-full shrink-0 items-center justify-start gap-1 border-b border-border/70 bg-background/90 px-2 backdrop-blur-md md:hidden">
-      <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)} aria-label="Open navigation" data-mobile-navigation-trigger>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="min-h-11 min-w-11"
+        onClick={() => setMobileOpen(true)}
+        aria-label="打开导航"
+        data-mobile-navigation-trigger
+      >
         <MenuIcon className="size-[18px]" />
       </Button>
-      <SpaceSwitcher className="max-w-[12rem]" size="md" />
+      {user ? (
+        <nav aria-label="主要导航" className="flex items-center gap-5 px-3 text-sm">
+          <Link
+            to={ROUTES.HOME}
+            aria-current={!journalActive ? "page" : undefined}
+            className={cn(
+              "inline-flex min-h-11 items-center rounded focus-visible:outline-2",
+              journalActive ? "text-muted-foreground" : "font-medium",
+            )}
+          >
+            记录
+          </Link>
+          <Link
+            to={ROUTES.JOURNAL}
+            aria-current={journalActive ? "page" : undefined}
+            className={cn(
+              "inline-flex min-h-11 items-center rounded focus-visible:outline-2",
+              journalActive ? "font-medium" : "text-muted-foreground",
+            )}
+          >
+            随便看看
+          </Link>
+        </nav>
+      ) : (
+        <SpaceSwitcher className="max-w-[12rem]" size="md" />
+      )}
     </header>
   );
 };

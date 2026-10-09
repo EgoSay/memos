@@ -98,7 +98,7 @@ describe("SpaceSwitcher", () => {
     renderAt();
     openSwitcher();
     const userButton = screen.getByRole("link", { name: "common.home" });
-    const exploreButton = screen.getByRole("link", { name: "common.explore" });
+    const exploreButton = screen.getByRole("link", { name: "随便看看" });
     expect(screen.getByRole("navigation", { name: "common.browse" })).toBeInTheDocument();
     expect(exploreButton).not.toHaveAttribute("aria-current");
     expect(userButton).toHaveAttribute("aria-current", "page");
@@ -109,20 +109,20 @@ describe("SpaceSwitcher", () => {
     expect(screen.getByRole("button", { name: "Steven account" })).toBeInTheDocument();
   });
 
-  it("switches Home to Explore without closing the menu", () => {
+  it("opens private journal exploration without closing the menu", () => {
     const router = renderAt("/");
     openSwitcher();
-    fireEvent.click(screen.getByRole("link", { name: "common.explore" }));
-    expect(router.state.location.pathname).toBe("/explore");
+    fireEvent.click(screen.getByRole("link", { name: "随便看看" }));
+    expect(router.state.location.pathname).toBe("/journal");
     expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "common.explore" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "随便看看" })).toHaveAttribute("aria-current", "page");
     fireEvent.click(screen.getByRole("link", { name: "common.home" }));
     expect(router.state.location.pathname).toBe("/");
     expect(router.state.location.search).toBe("");
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it("changes creator while preserving the Space and other query parameters", () => {
+  it("keeps creator filters for records but starts exploration outside collection filters", () => {
     state.selectedSpaceName = "spaces/product";
     state.selectedSpace = state.spaces[0];
     const router = renderAt("/spaces/product/calendar/2026/09?filter=tag%3Awork");
@@ -134,11 +134,12 @@ describe("SpaceSwitcher", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "common.home" })).toHaveAttribute("aria-current", "page");
 
-    fireEvent.click(screen.getByRole("link", { name: "common.explore" }));
+    fireEvent.click(screen.getByRole("link", { name: "随便看看" }));
+    expect(router.state.location.pathname).toBe("/journal");
     expect(new URLSearchParams(router.state.location.search).get("creator")).toBeNull();
-    expect(new URLSearchParams(router.state.location.search).get("filter")).toBe("tag:work");
+    expect(new URLSearchParams(router.state.location.search).get("filter")).toBeNull();
     expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "common.explore" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "随便看看" })).toHaveAttribute("aria-current", "page");
   });
 
   it("opens Space choices on demand and preserves creator when choosing one", async () => {

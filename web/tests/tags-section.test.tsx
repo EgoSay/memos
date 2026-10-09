@@ -1,16 +1,61 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SIDEBAR_ROW_BOX_CLASSES, SIDEBAR_ROW_COUNT_RAIL_CLASSES, SIDEBAR_ROW_SLOT_CLASSES } from "@/components/AppSidebar/SidebarRow";
 import { SIDEBAR_SECTION_ACTION_ICON_CLASSES } from "@/components/AppSidebar/SidebarSection";
 import TagsSection from "@/components/AppSidebar/TagsSection";
-import { MemoFilterProvider } from "@/contexts/MemoFilterContext";
+import { MemoFilterProvider, parseFilterQuery } from "@/contexts/MemoFilterContext";
 
 vi.mock("@/utils/i18n", () => ({ useTranslate: () => (key: string) => key }));
 
 describe("TagsSection", () => {
   beforeEach(() => {
     localStorage.clear();
+  });
+
+  it("keeps tags discoverable when no records have tags, without asking to add one", () => {
+    render(
+      <MemoryRouter>
+        <MemoFilterProvider>
+          <TagsSection tagCount={{}} scope="home" />
+        </MemoFilterProvider>
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("heading", { name: "common.tags" })).toBeInTheDocument();
+    expect(screen.getByText("common.empty-placeholder")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it.each(["/", "/calendar/2026/10", "/map"])("applies and clears a tag filter on %s without losing other filters", async (path) => {
+    const onSelect = vi.fn();
+    const LocationProbe = () => {
+      const location = useLocation();
+      return <output data-testid="filter-location">{JSON.stringify({ pathname: location.pathname, search: location.search })}</output>;
+    };
+    render(
+      <MemoryRouter initialEntries={[`${path}?creator=alice&filter=contentSearch%3Aflowers`]}>
+        <MemoFilterProvider>
+          <TagsSection tagCount={{ "life/walks": 3 }} scope="alice" onSelect={onSelect} />
+          <LocationProbe />
+        </MemoFilterProvider>
+      </MemoryRouter>,
+    );
+    const tag = screen.getByRole("button", { name: "#life/walks, setting.tags.used-count" });
+    expect(within(tag).getByText("3")).toBeInTheDocument();
+    fireEvent.click(tag);
+    await waitFor(() => expect(tag).toHaveAttribute("aria-pressed", "true"));
+    const location = JSON.parse(screen.getByTestId("filter-location").textContent || "{}");
+    expect(location.pathname).toBe(path);
+    expect(new URLSearchParams(location.search).get("creator")).toBe("alice");
+    expect(parseFilterQuery(new URLSearchParams(location.search).get("filter"))).toEqual([
+      { factor: "contentSearch", value: "flowers" },
+      { factor: "tagSearch", value: "life/walks" },
+    ]);
+    fireEvent.click(tag);
+    await waitFor(() => expect(tag).not.toHaveAttribute("aria-pressed"));
+    const cleared = JSON.parse(screen.getByTestId("filter-location").textContent || "{}");
+    expect(parseFilterQuery(new URLSearchParams(cleared.search).get("filter"))).toEqual([{ factor: "contentSearch", value: "flowers" }]);
+    expect(onSelect).toHaveBeenCalledTimes(2);
   });
 
   it("keeps the title count-free and uses the shared section action grammar", () => {

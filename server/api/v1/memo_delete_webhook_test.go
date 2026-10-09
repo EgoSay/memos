@@ -2,7 +2,6 @@ package v1
 
 import (
 	"context"
-	"encoding/json"
 	"io"
 	"net"
 	"net/http"
@@ -19,7 +18,7 @@ import (
 	"github.com/usememos/memos/store"
 )
 
-func TestDeleteMemoWebhooksRespectCurrentReadAccess(t *testing.T) {
+func TestLegacyUserWebhookDoesNotReceiveDeletedJournalOriginals(t *testing.T) {
 	ctx := context.Background()
 	service := newIntegrationService(t)
 	owner := createSpaceTestUser(ctx, t, service, "delete-webhook-owner", store.RoleUser)
@@ -96,23 +95,9 @@ func TestDeleteMemoWebhooksRespectCurrentReadAccess(t *testing.T) {
 
 	_, err = service.DeleteMemo(ownerCtx, &v1pb.DeleteMemoRequest{Name: readableMemo.Name})
 	require.NoError(t, err)
-	var body []byte
 	select {
-	case body = <-received:
-	case <-time.After(3 * time.Second):
-		require.FailNow(t, "readable memo deletion webhook was not delivered")
-	}
-	payload := &memoWebhookPayload{}
-	require.NoError(t, json.Unmarshal(body, payload))
-	require.Equal(t, "memos.memo.deleted", payload.ActivityType)
-	require.NotNil(t, payload.Memo)
-	require.Equal(t, readableMemo.Name, payload.Memo.Name)
-	require.Equal(t, "readable deletion payload", payload.Memo.Content)
-	require.NotContains(t, string(body), hiddenMemo.Content)
-
-	select {
-	case extra := <-received:
-		require.Failf(t, "unexpected additional deletion webhook", "received %s", extra)
+	case body := <-received:
+		require.Failf(t, "legacy user hook leaked a private original", "received %s", body)
 	case <-time.After(200 * time.Millisecond):
 	}
 }

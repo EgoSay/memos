@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import JournalCalendar from "@/components/JournalCalendar";
 import MemoEditor from "@/components/MemoEditor";
 import { deriveDefaultCreateTimeFromFilters } from "@/components/MemoEditor/utils/deriveDefaultCreateTime";
 import MemoView from "@/components/MemoView";
@@ -10,16 +11,14 @@ import { NewMemoProvider } from "@/contexts/NewMemoContext";
 import { useSpaceContext } from "@/contexts/SpaceContext";
 import { useMemoFilters, useMemoSorting } from "@/hooks";
 import useCurrentUser from "@/hooks/useCurrentUser";
-import { useMemoSuggestions } from "@/hooks/useMemoSuggestions";
+import useMediaQuery from "@/hooks/useMediaQuery";
 import { spaceScopedCacheKey } from "@/lib/resource-names";
 import { State } from "@/types/proto/api/v1/common_pb";
 import { Memo } from "@/types/proto/api/v1/memo_service_pb";
-import { useTranslate } from "@/utils/i18n";
 
 const Home = () => {
   const user = useCurrentUser();
-  const suggestions = useMemoSuggestions();
-  const t = useTranslate();
+  const desktop = useMediaQuery("md");
   const { isUserSettingsInitialized } = useAuth();
   const { claimHomeAutoFocus } = useGlobalMemoEditor();
   const { filters } = useMemoFilterContext();
@@ -56,26 +55,38 @@ const Home = () => {
               showPinned={honorPinned}
               showSpace={!selectedSpaceName}
               compact={compact}
+              privateDiary={Boolean(user && canComposeInScope)}
             />
           )}
           listSort={listSort}
           orderBy={orderBy}
           filter={memoFilter}
           contextFilter={contextFilter}
+          emptyMessage="记录留在这里，什么时候想写都可以。"
+          renderHeader={() =>
+            user && canComposeInScope ? (
+              <header className="mb-6 px-1 pt-3">
+                <h1 className="font-serif text-2xl font-medium tracking-tight">记录</h1>
+                <p className="mt-2 text-sm text-muted-foreground">给此刻，留一点位置。</p>
+              </header>
+            ) : null
+          }
           renderLeading={({ useGrid }) => {
             if (!isUserSettingsInitialized || !canComposeInScope) return null;
 
             return (
-              <MemoEditor
-                key={editorCacheKey}
-                autoFocus={claimHomeAutoFocus}
-                className={useGrid ? undefined : "mb-2"}
-                cacheKey={editorCacheKey}
-                placeholder={t("editor.any-thoughts")}
-                defaultCreateTime={defaultCreateTime}
-                defaultSpace={selectedSpaceName}
-                suggestions={suggestions}
-              />
+              <>
+                <MemoEditor
+                  key={editorCacheKey}
+                  autoFocus={desktop ? claimHomeAutoFocus : false}
+                  className={useGrid ? undefined : "mb-2"}
+                  cacheKey={editorCacheKey}
+                  placeholder="写点什么……"
+                  defaultCreateTime={defaultCreateTime}
+                  defaultSpace={selectedSpaceName}
+                />
+                {!desktop && <JournalCalendar mobile />}
+              </>
             );
           }}
         />

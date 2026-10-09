@@ -27,6 +27,16 @@ const Setting = lazyWithReload(() => import("@/pages/Setting"));
 const MemoViews = lazyWithReload(() => import("@/pages/MemoViews"));
 const SignIn = lazyWithReload(() => import("@/pages/SignIn"));
 const SignUp = lazyWithReload(() => import("@/pages/SignUp"));
+const JournalExplore = lazyWithReload(() => import("@/pages/JournalExplore"));
+const JournalReview = lazyWithReload(() => import("@/pages/JournalReview"));
+const JournalWander = lazyWithReload(() => import("@/pages/JournalWander"));
+const JournalDay = lazyWithReload(() => import("@/pages/JournalDay"));
+const JournalInsights = lazyWithReload(() => import("@/pages/JournalInsights"));
+const JournalPartitions = lazyWithReload(() => import("@/pages/JournalPartitions"));
+const JournalTrash = lazyWithReload(() => import("@/pages/JournalTrash"));
+const JournalShares = lazyWithReload(() => import("@/pages/JournalShares"));
+const JournalShared = lazyWithReload(() => import("@/pages/JournalShared"));
+const JournalBackup = lazyWithReload(() => import("@/pages/JournalBackup"));
 
 const HomeRoute = () => {
   const { isIdentityInitialized } = useAuth();
@@ -61,6 +71,7 @@ export const routeConfig: RouteObject[] = [
     element: <App />,
     errorElement: <ChunkLoadErrorFallback />,
     children: [
+      { path: "/s/:token", element: <JournalShared /> },
       {
         path: Routes.AUTH,
         children: [
@@ -103,6 +114,15 @@ export const routeConfig: RouteObject[] = [
               {
                 element: <RequireAuthRoute />,
                 children: [
+                  { path: Routes.JOURNAL, element: <JournalExplore /> },
+                  { path: Routes.JOURNAL_REVIEW, element: <JournalReview /> },
+                  { path: Routes.JOURNAL_WANDER, element: <JournalWander /> },
+                  { path: Routes.JOURNAL_INSIGHTS, element: <JournalInsights /> },
+                  { path: Routes.JOURNAL_PARTITIONS, element: <JournalPartitions /> },
+                  { path: Routes.JOURNAL_TRASH, element: <JournalTrash /> },
+                  { path: Routes.JOURNAL_SHARES, element: <JournalShares /> },
+                  { path: Routes.JOURNAL_BACKUP, element: <JournalBackup /> },
+                  { path: `${Routes.JOURNAL}/day/:date`, element: <JournalDay /> },
                   { path: Routes.ARCHIVED, element: <Archived /> },
                   {
                     element: <RequireFullInitializationRoute />,

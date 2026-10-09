@@ -46,6 +46,22 @@ describe("MemoDetailSidebar", () => {
     currentUserState.value = { name: "users/alice" };
   });
 
+  it("keeps personal originals quiet and starts an explicit preview-based share", () => {
+    const memo = create(MemoSchema, {
+      name: "memos/diary",
+      creator: "users/alice",
+      state: State.NORMAL,
+      relations: [createIncomingReference("memos/diary")],
+    });
+    renderSidebar(<MemoDetailSidebar memo={memo} privateDiary commentCount={4} onEdit={vi.fn()} onCommentCreate={vi.fn()} />);
+    expect(screen.queryByText("memo.connections")).not.toBeInTheDocument();
+    expect(screen.queryByText("memo.comment.self")).not.toBeInTheDocument();
+    expect(screen.queryByText("memo.comment.write-a-comment")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "common.share" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "分享这条" })).toHaveAttribute("href", "/journal/shares?memo=memos%2Fdiary");
+    expect(screen.getByRole("button", { name: "common.edit" })).toBeInTheDocument();
+  });
+
   it("leaves returning to the origin to browser back and the app navigation", () => {
     const parentPage = "/spaces/travel/map?filter=tagSearch%3Atravel&lat=35&lng=135&zoom=12&memo=memos%2Fdetail";
     const { container } = renderSidebar(<MemoDetailSidebar memo={create(MemoSchema, { name: "memos/detail" })} parentPage={parentPage} />);

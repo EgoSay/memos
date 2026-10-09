@@ -102,6 +102,10 @@ jobs:
 
       - name: Run release smoke test
         run: ./scripts/release_smoke_test.sh
+        env:
+          # This fork does not carry the upstream release tags. Use the same
+          # explicit upgrade baseline as the journal image publication gate.
+          MEMOS_SMOKE_PREVIOUS_IMAGE: neosmemo/memos:0.31.0
 
   entrypoint:
     name: Entrypoint secret handling

@@ -92,7 +92,8 @@ export function buildEditorExtensions({
   // shortcut ends the memo, it must not also edit the document. Meta and Ctrl are bound
   // explicitly (not via the platform-dependent Mod-) so Cmd+Enter and Ctrl+Enter both
   // submit everywhere, matching the historical window-level shortcut.
-  const submit = () => {
+  const submit = (view: EditorView) => {
+    if (view.composing) return false;
     onSubmit();
     return true;
   };

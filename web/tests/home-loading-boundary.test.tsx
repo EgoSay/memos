@@ -7,6 +7,7 @@ vi.mock("@/hooks/useMemoSuggestions", () => ({
 }));
 
 const state = vi.hoisted(() => ({
+  desktop: true,
   selectedSpaceName: undefined as string | undefined,
   creatorUsername: undefined as string | undefined,
   editorProps: undefined as Record<string, unknown> | undefined,
@@ -14,6 +15,9 @@ const state = vi.hoisted(() => ({
   memoViewProps: undefined as Record<string, unknown> | undefined,
   filterOptions: undefined as Record<string, unknown> | undefined,
 }));
+
+vi.mock("@/hooks/useMediaQuery", () => ({ default: () => state.desktop }));
+vi.mock("@/components/JournalCalendar", () => ({ default: () => <div data-testid="journal-calendar" /> }));
 
 vi.mock("@/components/MemoEditor", () => ({
   default: (props: Record<string, unknown>) => {
@@ -97,6 +101,7 @@ vi.mock("@/utils/i18n", () => ({
 
 describe("<Home>", () => {
   beforeEach(() => {
+    state.desktop = true;
     state.selectedSpaceName = undefined;
     state.creatorUsername = undefined;
     state.editorProps = undefined;
@@ -112,7 +117,7 @@ describe("<Home>", () => {
     expect(state.listProps).toMatchObject({ contextFilter: undefined });
     expect(state.editorProps).toMatchObject({ cacheKey: "home-memo-editor", defaultSpace: undefined });
     expect(state.editorProps?.autoFocus).toEqual(expect.any(Function));
-    expect(state.editorProps?.suggestions).toEqual([{ id: "tag:work" }]);
+    expect(state.editorProps?.suggestions).toBeUndefined();
     expect(state.filterOptions).not.toHaveProperty("creatorName");
     expect(state.memoViewProps).toMatchObject({ showCreator: true });
   });
@@ -134,5 +139,13 @@ describe("<Home>", () => {
       cacheKey: "home-memo-editor:spaces/product",
       defaultSpace: "spaces/product",
     });
+  });
+  it("does not summon the phone keyboard on first entry and places the calendar after input", () => {
+    state.desktop = false;
+    render(<Home />);
+    expect(state.editorProps?.autoFocus).toBe(false);
+    expect(
+      screen.getByTestId("memo-editor").compareDocumentPosition(screen.getByTestId("journal-calendar")) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 });

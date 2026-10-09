@@ -22,14 +22,14 @@ func TestConvertUserWebhookFromUserSettingOmitsSigningSecret(t *testing.T) {
 	stored := &storepb.WebhooksUserSetting_Webhook{
 		Id:            "webhook-id",
 		Title:         "My Webhook",
-		Url:           "https://example.com/postreceive",
+		Url:           "https://8.8.8.8/postreceive",
 		SigningSecret: "whsec_super-secret-value",
 	}
 
 	apiWebhook := convertUserWebhookFromUserSetting(stored, user)
 
 	require.Equal(t, "My Webhook", apiWebhook.DisplayName)
-	require.Equal(t, "https://example.com/postreceive", apiWebhook.Url)
+	require.Equal(t, "https://8.8.8.8/postreceive", apiWebhook.Url)
 	require.Empty(t, apiWebhook.SigningSecret, "signing secret must never be returned in API responses")
 	require.True(t, apiWebhook.SigningSecretSet, "signing_secret_set must be true when secret is configured")
 }
@@ -56,7 +56,7 @@ func TestUserWebhookSigningSecretLifecycle(t *testing.T) {
 	// Create without supplying a secret -> the server generates one.
 	created, err := svc.CreateUserWebhook(ownerCtx, &v1pb.CreateUserWebhookRequest{
 		Parent:  "users/owner",
-		Webhook: &v1pb.UserWebhook{DisplayName: "deploy", Url: "https://example.com/postreceive"},
+		Webhook: &v1pb.UserWebhook{DisplayName: "deploy", Url: "https://8.8.8.8/postreceive"},
 	})
 	require.NoError(t, err)
 	require.True(t, created.SigningSecretSet, "create must auto-generate a signing secret")

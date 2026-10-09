@@ -1,5 +1,10 @@
 package v1
 
+// JournalPublicReadPath is the public bearer-grant JSON route. Its handler
+// validates expiry, passcode, current item access and safe media on every read.
+// All other /api/v1/journal routes require the existing session/PAT authorizer.
+const JournalPublicReadPath = "/api/v1/journal-shares/:token"
+
 // PublicMethods defines API endpoints that don't require authentication.
 // All other endpoints require a valid session or access token.
 //

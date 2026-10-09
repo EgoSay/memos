@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import toast from "react-hot-toast";
 import { useLocation } from "react-router-dom";
 import { useInstance } from "@/contexts/InstanceContext";
+import { journalRequest } from "@/hooks/useJournalQueries";
 import { memoKeys, useDeleteMemo, useUpdateMemo } from "@/hooks/useMemoQueries";
 import useNavigateTo from "@/hooks/useNavigateTo";
 import { userKeys } from "@/hooks/useUserQueries";
@@ -139,12 +140,18 @@ export const useMemoActionHandlers = ({ memo, parentPage, onEdit, setDeleteDialo
 
   const confirmDeleteMemo = useCallback(async () => {
     try {
-      await deleteMemo(memo.name);
+      if (memo.parent) await deleteMemo(memo.name);
+      else {
+        await journalRequest(`/memos/${encodeURIComponent(extractMemoIdFromName(memo.name))}/trash`, { method: "POST" });
+        queryClient.removeQueries({ queryKey: memoKeys.detail(memo.name) });
+        await queryClient.invalidateQueries({ queryKey: memoKeys.lists() });
+        await queryClient.invalidateQueries({ queryKey: ["journal"] });
+      }
     } catch (error: unknown) {
       handleError(error, toast.error, { context: "Delete memo", fallbackMessage: "An error occurred" });
       return;
     }
-    toast.success(t("message.deleted-successfully"));
+    toast.success(memo.parent ? t("message.deleted-successfully") : "已移到最近删除，30 天内可以恢复。");
     if (memo.parent) {
       queryClient.invalidateQueries({ queryKey: memoKeys.comments(memo.parent) });
       queryClient.invalidateQueries({ queryKey: memoKeys.detail(memo.parent) });

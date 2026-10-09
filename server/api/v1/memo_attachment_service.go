@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"errors"
 	"net/url"
 	"slices"
 	"strings"
@@ -243,10 +244,16 @@ func (s *APIV1Service) applyMemoMutation(
 		ReplaceReferenceRelations: referenceRelations != nil,
 		Policy:                    policy,
 	}
+	if memoUpdate != nil {
+		mutation.ExpectedRecordHash = memoUpdate.ExpectedRecordHash
+	}
 	if referenceRelations != nil {
 		mutation.ReferenceRelations = *referenceRelations
 	}
 	if err := s.Store.ApplyMemoMutation(ctx, mutation); err != nil {
+		if mutation.ExpectedRecordHash != "" && errors.Is(err, store.ErrMemoMutationConflict) {
+			return status.Error(codes.Aborted, "record changed while saving; local content was preserved")
+		}
 		return mapMemoWriteError(err, "failed to apply memo mutation")
 	}
 	if err := s.cleanupDeletedAttachmentStorage(ctx, prepared.removed); err != nil {

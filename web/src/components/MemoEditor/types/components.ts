@@ -79,6 +79,7 @@ export interface EditorToolbarProps {
   onAudioRecorderClick: () => void;
   viewToggles?: EditorViewToggles;
   onInsertImages: (files: File[]) => void;
+  onInsertTag?: () => void;
 }
 
 export interface EditorMetadataProps {
@@ -122,6 +123,7 @@ export interface InsertMenuProps {
   onAudioRecorderClick?: () => void;
   viewToggles?: EditorViewToggles;
   onInsertImages: (files: File[]) => void;
+  onInsertTag?: () => void;
 }
 
 export interface AudienceMenuProps {

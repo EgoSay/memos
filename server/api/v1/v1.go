@@ -15,6 +15,7 @@ import (
 	"golang.org/x/sync/semaphore"
 
 	"github.com/usememos/memos/core/notification"
+	"github.com/usememos/memos/core/partition"
 	"github.com/usememos/memos/internal/linkmeta"
 	"github.com/usememos/memos/internal/profile"
 	"github.com/usememos/memos/internal/ratelimit"
@@ -56,6 +57,7 @@ func requestBodyLimit(procedure string) int64 {
 }
 
 type APIV1Service struct {
+	JournalPartitions *partition.Service
 	v1pb.UnimplementedInstanceServiceServer
 	v1pb.UnimplementedAuthServiceServer
 	v1pb.UnimplementedUserServiceServer
@@ -135,6 +137,7 @@ func newGatewayMarshaler() *runtime.HTTPBodyMarshaler {
 
 // RegisterGateway registers the gRPC-Gateway and Connect handlers with the given Echo instance.
 func (s *APIV1Service) RegisterGateway(ctx context.Context, echoServer *echo.Echo) error {
+	s.registerJournalRoutes(ctx, echoServer)
 	// Shared authorizer: one source of truth for authentication and anonymous-access
 	// policy, used by both the gRPC-Gateway middleware and the Connect interceptor.
 	authorizer := NewAuthorizer(s.Store, s.Secret).WithRateLimiter(s.RateLimiter)

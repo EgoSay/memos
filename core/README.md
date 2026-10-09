@@ -9,6 +9,10 @@ apply the same way.
 | `access/` | who may read a memo, given viewer, space membership, and share links |
 | `notification/` | building and dispatching inbox and email notifications |
 | `memopayload/` | rebuilding a memo's derived payload from its markdown |
+| `journal/` | private review, calendar, sharing selection and derived-content withdrawal |
+| `journalrecord/` | original record revision and trash retention |
+| `partition/` | personal organization and durable explicitly authorized external delivery |
+| `journalbackup/` | portable journal archive validation and private recovery |
 | `memoexport/` | the Memos Export Format container and records used for export and import |
 
 Layering: `core` may import `store`, `provider`, `markdown`, `filter`,

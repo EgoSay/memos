@@ -8,6 +8,10 @@ import (
 // Driver is an interface for store driver.
 // It contains all methods that store database driver should implement.
 type Driver interface {
+	GetJournalDocument(ctx context.Context, ownerID int32, kind, key string) (*JournalDocument, error)
+	ListJournalDocuments(ctx context.Context, find *FindJournalDocument) ([]*JournalDocument, error)
+	PutJournalDocument(ctx context.Context, doc *JournalDocument, expectedVersion int64) (*JournalDocument, error)
+	DeleteJournalDocument(ctx context.Context, ownerID int32, kind, key string, expectedVersion int64) error
 	GetDB() *sql.DB
 	Close() error
 
