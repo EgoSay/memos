@@ -1,6 +1,6 @@
 import type { MemoFilter } from "@/contexts/MemoFilterContext";
 import type { SuggestionSource } from "@/lib/memo-suggestions";
-import { isCompleteTagValue } from "@/utils/tag-grammar";
+import { formatTag } from "@/utils/tag-grammar";
 import { parseSuggestionExpression, readStringList, type SuggestionExpression, type SuggestionToken } from "./suggestion-expression";
 
 interface TagConditions {
@@ -55,5 +55,5 @@ export function getTagSuggestionCandidates(filters: MemoFilter[], viewFilter?: s
     ...filters.filter((filter) => filter.factor === "tagSearch").map((filter) => ({ tag: filter.value, source: "selection" as const })),
     ...conditions.flatMap((condition) => condition.candidates.map((tag) => ({ tag, source: condition.source }))),
   ];
-  return candidates.filter(({ tag }) => !excluded.has(tag) && isCompleteTagValue(tag));
+  return candidates.filter(({ tag }) => !excluded.has(tag) && formatTag(tag) !== undefined);
 }

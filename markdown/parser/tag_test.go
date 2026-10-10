@@ -200,6 +200,27 @@ func TestFindTagMatches(t *testing.T) {
 	}
 }
 
+func TestQuotedTagNames(t *testing.T) {
+	for _, value := range []string{"读书/标题：副标题", "读书/书名（新版）", "读书/甲、乙、丙", "books/Title:Edition"} {
+		t.Run(value, func(t *testing.T) {
+			spelling, ok := FormatTag(value)
+			require.True(t, ok)
+			require.Equal(t, "#\""+value+"\"", spelling)
+			matches := FindTagMatches([]byte(spelling + " #ordinary"))
+			require.Len(t, matches, 2)
+			require.Equal(t, value, string(matches[0].Value))
+			require.Equal(t, len(spelling), matches[0].End)
+		})
+	}
+	for _, value := range []string{"", "two words", "book//title", "book/title/", "book/line\nbreak", "quote\"inside", "book/<title>", "book/\\name"} {
+		_, ok := FormatTag(value)
+		require.False(t, ok, value)
+	}
+	spelling, ok := FormatTag("book/title")
+	require.True(t, ok)
+	require.Equal(t, "#book/title", spelling)
+}
+
 func TestFindTagMatchesMultipleTags(t *testing.T) {
 	matches := FindTagMatches([]byte("#tag1 #tag2"))
 	require.Len(t, matches, 2)

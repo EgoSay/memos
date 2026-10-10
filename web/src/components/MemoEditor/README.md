@@ -6,6 +6,9 @@ MemoEditor is a three-layer component. At its core is a single editor — `Edito
 
 ## Architecture
 
+Tag insertion and completion serialize punctuation-bearing names as `#"books/Title:Edition"`.
+The source editor keeps the quotes; the reader displays the original tag name and filtering uses its exact value.
+
 ```
 ┌─────────────────────────────────────────┐
 │   Presentation Layer (Components)       │

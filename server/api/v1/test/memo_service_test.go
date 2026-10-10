@@ -300,26 +300,26 @@ func TestCreateAndUpdateMemoRebuildsTagPayload(t *testing.T) {
 
 	memo, err := ts.Service.CreateMemo(userCtx, &apiv1.CreateMemoRequest{
 		Memo: &apiv1.Memo{
-			Content:    "#book/fiction #Work #work #A\u200dB https://example.com/#hidden",
+			Content:    "#book/fiction #Work #work #A\u200dB https://example.com/#hidden #\"books/Title:Edition\"",
 			Visibility: apiv1.Visibility_PRIVATE,
 		},
 	})
 	require.NoError(t, err)
-	require.Equal(t, []string{"book", "book/fiction", "Work", "work", "AB"}, memo.Tags)
+	require.Equal(t, []string{"book", "book/fiction", "Work", "work", "AB", "books", "books/Title:Edition"}, memo.Tags)
 
 	memo, err = ts.Service.UpdateMemo(userCtx, &apiv1.UpdateMemoRequest{
 		Memo: &apiv1.Memo{
 			Name:    memo.Name,
-			Content: "#next #A\u200dB",
+			Content: "#next #A\u200dB #\"books/Title:Edition\"",
 		},
 		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"content"}},
 	})
 	require.NoError(t, err)
-	require.Equal(t, []string{"next", "AB"}, memo.Tags)
+	require.Equal(t, []string{"next", "AB", "books", "books/Title:Edition"}, memo.Tags)
 
 	stored, err := ts.Service.GetMemo(userCtx, &apiv1.GetMemoRequest{Name: memo.Name})
 	require.NoError(t, err)
-	require.Equal(t, []string{"next", "AB"}, stored.Tags)
+	require.Equal(t, []string{"next", "AB", "books", "books/Title:Edition"}, stored.Tags)
 }
 
 func TestListMemos(t *testing.T) {

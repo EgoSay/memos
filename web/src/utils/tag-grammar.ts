@@ -178,6 +178,21 @@ function scanSegment(source: string, from: number, limit: number): SegmentMatch 
 export function scanTagAt(source: string, from: number, limit = source.length): TagMatch | undefined {
   if (!isTagIntroducerAt(source, from, limit)) return undefined;
 
+  if (source[from + 1] === '"') {
+    for (let index = from + 2; index < limit; ) {
+      const point = codePointAt(source, index);
+      if (index + point.length > limit) return undefined;
+      if (point === '"') {
+        const value = source.slice(from + 2, index);
+        if (!value || value.startsWith("/") || value.endsWith("/") || value.includes("//")) return undefined;
+        return { from, to: index + 1, source: source.slice(from + 1, index + 1), value };
+      }
+      if (/[\p{White_Space}\p{Cc}]/u.test(point) || isDefaultIgnorable(point) || "\\[]<>`*~$|&#_".includes(point)) return undefined;
+      index += point.length;
+    }
+    return undefined;
+  }
+
   const firstSegment = scanSegment(source, from + 1, limit);
   if (!firstSegment) return undefined;
 
@@ -229,4 +244,12 @@ export function findTagMatches(source: string, from = 0, limit = source.length):
 export function isCompleteTagValue(value: string): boolean {
   const match = scanTagAt(`#${value}`, 0);
   return match?.value === value && match.to === value.length + 1;
+}
+
+/** Serialize punctuation-bearing names explicitly without changing bare tag boundaries. */
+export function formatTag(value: string): string | undefined {
+  if (isCompleteTagValue(value)) return `#${value}`;
+  const source = `#"${value}"`;
+  const match = scanTagAt(source, 0);
+  return match?.value === value && match.to === source.length ? source : undefined;
 }

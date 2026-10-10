@@ -17,6 +17,7 @@ import (
 	"github.com/EgoSay/kairos/internal/identifier"
 	mast "github.com/EgoSay/kairos/markdown/ast"
 	"github.com/EgoSay/kairos/markdown/extensions"
+	mparser "github.com/EgoSay/kairos/markdown/parser"
 	"github.com/EgoSay/kairos/markdown/renderer"
 	storepb "github.com/EgoSay/kairos/proto/gen/store"
 )
@@ -564,8 +565,12 @@ func (s *service) RenameTag(content []byte, oldTag, newTag string) (string, erro
 	cursor := 0
 	for _, sourceRange := range ranges {
 		output.Write(content[cursor:sourceRange.start])
-		output.WriteByte('#')
-		output.WriteString(newTag)
+		if spelling, ok := mparser.FormatTag(newTag); ok {
+			output.WriteString(spelling)
+		} else {
+			output.WriteByte('#')
+			output.WriteString(newTag)
+		}
 		cursor = sourceRange.end
 	}
 	output.Write(content[cursor:])

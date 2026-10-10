@@ -1,6 +1,9 @@
 package parser
 
 import (
+	"bytes"
+	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/yuin/goldmark/util"
@@ -168,6 +171,9 @@ starter:
 }
 
 func scanTagIdentifier(source []byte) (int, []byte, bool) {
+	if len(source) > 0 && source[0] == '"' {
+		return scanQuotedTag(source)
+	}
 	consumed, value, ok := scanTagSegment(source)
 	if !ok {
 		return 0, nil, false
@@ -184,6 +190,38 @@ func scanTagIdentifier(source []byte) (int, []byte, bool) {
 	}
 
 	return consumed, value, true
+}
+
+// Quoting preserves punctuation in imported names without widening bare tags.
+// Markdown delimiters and character references stay outside this literal form.
+func scanQuotedTag(source []byte) (int, []byte, bool) {
+	for pos := 1; pos < len(source); {
+		r, size := utf8.DecodeRune(source[pos:])
+		if r == '"' {
+			value := source[1:pos]
+			if len(value) == 0 || value[0] == '/' || value[len(value)-1] == '/' || bytes.Contains(value, []byte("//")) {
+				return 0, nil, false
+			}
+			return pos + 1, value, true
+		}
+		if r == utf8.RuneError && size == 1 || unicode.IsSpace(r) || unicode.IsControl(r) || isDefaultIgnorable(r) ||
+			strings.ContainsRune("\\[]<>`*~$|&#_", r) {
+			return 0, nil, false
+		}
+		pos += size
+	}
+	return 0, nil, false
+}
+
+// FormatTag returns an exact bare or quoted spelling for a tag identifier.
+func FormatTag(value string) (string, bool) {
+	for _, spelling := range []string{value, "\"" + value + "\""} {
+		consumed, parsed, ok := scanTagIdentifier([]byte(spelling))
+		if ok && consumed == len(spelling) && string(parsed) == value {
+			return "#" + spelling, true
+		}
+	}
+	return "", false
 }
 
 func characterReferenceLength(source []byte) int {
