@@ -32,6 +32,8 @@
 新建 Dokploy 环境可参考 `scripts/compose.dokploy.yaml`。生产声明使用固定 digest；模板里的镜像变量不能覆盖生产声明。
 镜像名称改变时，必须同时核对：GitHub App 的仓库、Dokploy repository/owner/branch/composePath、实际 Compose 镜像、镜像拉取权限、发布闸门允许的镜像仓库，以及回滚声明。
 
+首次发布新的 GHCR 包时，GitHub 默认将其设为私有，即使源码仓库是公开的。当前 Dokploy 方案使用公开镜像：首次推送后，在 Kairos 包的设置中将可见性设为 Public，再继续发布。流水线会使用不含登录凭据的临时 Docker 配置检查固定 digest 的清单；检查失败时会在冻结写入和更新生产声明之前停止。完成包权限配置后再重试，不能把 Actions 能推送镜像当作 Dokploy 能拉取的证据。[GitHub 镜像权限说明](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
+
 ## 兼容与迁移
 
 | 项目 | Kairos 的处理 |

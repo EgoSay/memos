@@ -85,6 +85,18 @@ jobs:
           docker push "$IMAGE:production"
           digest=$(docker image inspect "$IMAGE:$RELEASE_VERSION" --format '{{index .RepoDigests 0}}')
           echo "digest=${digest#*@}" >> "$GITHUB_OUTPUT"
+      - name: Check anonymous image access before preparing deployment
+        env:
+          IMAGE: ${{ needs.release.outputs.image }}
+          DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          # Dokploy pulls the public package without the runner's publishing token.
+          pull_config=$(mktemp -d)
+          trap 'rm -rf "$pull_config"' EXIT
+          if ! docker --config "$pull_config" manifest inspect "$IMAGE@$DIGEST" > /dev/null; then
+            echo '::error::The image is not publicly readable. Set the Kairos GHCR package visibility to public and retry. Deployment preparation has not started.'
+            exit 1
+          fi
       - name: Prepare private deployment credentials
         id: credentials
         env:
