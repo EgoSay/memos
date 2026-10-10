@@ -15,6 +15,13 @@ function complete(doc: string, pos: number, tags: string[], explicit = false) {
 }
 
 describe("tag autocomplete", () => {
+  it("completes punctuation-bearing names using their exact quoted spelling", () => {
+    const tag = "读书/书名（新版）";
+    const result = complete("#读", 2, [tag]);
+    expect(result?.from).toBe(1);
+    expect(result?.options[0]).toMatchObject({ label: tag, apply: `"${tag}"` });
+  });
+
   it("offers known tags after one character", () => {
     expect(complete("#t", 2, ["thoughts", "today", "work"])?.options.map((o) => o.label)).toEqual(["thoughts", "today"]);
   });

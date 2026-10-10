@@ -15,6 +15,14 @@ const renderMarkdownWithoutMath = (content: string): string =>
   renderToStaticMarkup(<ReactMarkdown remarkPlugins={[remarkGfm, remarkMemoSyntax, remarkBreaks]}>{content}</ReactMarkdown>);
 
 describe("remarkMemoSyntax", () => {
+  it("renders a quoted tag with its full original name and no syntax quotes", () => {
+    const html = renderMarkdown('**#"读书/书名（新版）"** #ordinary');
+    expect(html).toContain('data-tag="读书/书名（新版）"');
+    expect(html).toContain(">#读书/书名（新版）</span>");
+    expect(html).toContain('data-tag="ordinary"');
+    expect(renderMarkdown('`#"code:only"` [#"link:only"](/x)')).not.toContain("data-tag=");
+  });
+
   it("does not turn URL fragments inside autolinks into tags", () => {
     const html = renderMarkdown("https://github.com/dmtrKovalenko/fff#pi-agent-extension\n\nProject #memo-tag");
 

@@ -112,6 +112,23 @@ describe("suggested tag insertion", () => {
     v.destroy();
   });
 
+  it("preserves a punctuation-bearing tag through insertion, an edit, and undo", () => {
+    const { v, c } = setup("Note");
+    const tag = "读书/书名（新版）";
+    c.setCursor(4);
+    expect(c.insertTag(tag)).toBe(true);
+    expect(c.getMarkdown()).toBe(`Note #"${tag}" `);
+    expect(c.getTags()).toEqual([tag]);
+    expect(c.getCursor()).toBe(c.getMarkdown().length);
+    expect(c.insertTag(tag)).toBe(false);
+    expect(undo(v)).toBe(true);
+    expect(c.getMarkdown()).toBe("Note");
+    expect(redo(v)).toBe(true);
+    c.setMarkdown(`${c.getMarkdown()}A later edit.`);
+    expect(c.getTags()).toEqual([tag]);
+    v.destroy();
+  });
+
   it.each([
     ["", 0, "#work ", 6],
     ["alpha beta", 0, "#work alpha beta", 6],
