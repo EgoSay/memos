@@ -27,6 +27,11 @@ The journal workflow does not create a GitHub Release page.
 Before the first Kairos release, verify that Dokploy uses `EgoSay/kairos`
 and the deployed `journal_release_gate.py` expects the Kairos registry.
 Keep the existing composeId, appName, production branch, volumes, and data paths.
+New GHCR packages default to private. This deployment uses public images:
+after the first package push, confirm its visibility is Public. The workflow
+checks anonymous manifest access before freezing writes. If that check fails,
+configure the package visibility and rerun only after confirming preparation
+never started; publishing credentials do not prove Dokploy pull access.
 Already published tags retain legacy request compatibility. New Kairos requests
 include the repository and must confirm the exact requested repository and digest.
 Both approved repositories remain usable as previous images for rollback.
