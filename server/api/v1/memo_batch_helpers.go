@@ -3,7 +3,7 @@ package v1
 import (
 	"context"
 
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 func (s *APIV1Service) listMemosByID(ctx context.Context, memoIDs []int32) (map[int32]*store.Memo, error) {

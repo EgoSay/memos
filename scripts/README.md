@@ -1,4 +1,4 @@
-# Deployment and recovery tools
+# Kairos deployment and recovery tools
 
 `Dockerfile` supports local builds and upgrade smoke checks that build the frontend
 before building the Go image. `Dockerfile.dokploy` builds both from a clean Git
@@ -9,7 +9,7 @@ node_modules and previously generated frontend files.
 
 `journal-image.yml` runs only when a release tag is pushed. Tags use the existing
 `YY.MM[.N][-rc.N]` format, for example `26.10`, `26.10.1` or `26.10-rc.1`;
-`v1.0.0` is not an application version supported by this fork. A tag may point
+`v1.0.0` is not an application version supported by Kairos. A tag may point
 to a commit on any branch, provided that commit contains this workflow. Branch
 pushes, PR merges, tag deletions and GitHub Release description edits do not
 deploy. There is no manual workflow-dispatch entry point; rerun a failed tag run
@@ -18,7 +18,7 @@ when appropriate. Release-candidate tags also use this production pipeline.
 The workflow validates the tag before starting the frontend and backend CI,
 builds the image on GitHub, runs the existing fresh-install, frontend,
 restart-persistence and upgrade smoke tests, and publishes the release version,
-source commit and `production` image tags to `ghcr.io/egosay/memos-journal`.
+source commit and `production` image tags to `ghcr.io/egosay/kairos`.
 The application version comes from the release tag; the source identity always
 uses the checked-out commit, including for annotated tags. This avoids compiling on the
 application server. After the backup gate succeeds, CI pushes a pinned declaration
@@ -38,7 +38,7 @@ pipeline instead uses the actual authenticated GitHub App push event. Set:
 
 ```dotenv
 MEMOS_INSTANCE_URL=https://journal.example.com
-MEMOS_IMAGE=ghcr.io/egosay/memos-journal:production
+MEMOS_IMAGE=ghcr.io/egosay/kairos:production
 MEMOS_TUNNEL_TOKEN=<dedicated remotely managed Cloudflare Tunnel token>
 ```
 
@@ -57,7 +57,7 @@ not move a published tag or tag an old commit that still contains the retired
 upstream release workflows. This pipeline publishes our image and deploys the
 site; it does not create upstream binary packages or a GitHub Release page.
 
-The fork's upstream Canary image, Release, Render demo and stale-item workflows
+The inherited upstream Canary image, Release, Render demo and stale-item workflows
 have been removed. Keep frontend, backend, Proto and upgrade checks. In GitHub
 Actions settings, keep the legacy `Build Canary Image` workflow disabled so its
 historical workflow versions cannot publish. No workflow automatically closes
@@ -80,9 +80,9 @@ For a local build (Docker required):
 ```bash
 docker build -f scripts/Dockerfile.dokploy \
   --build-arg VERSION="$(bash scripts/release_version.sh development-version)" \
-  --build-arg COMMIT="$(git rev-parse HEAD)" -t journal:verify .
+  --build-arg COMMIT="$(git rev-parse HEAD)" -t kairos:verify .
 bash scripts/release_smoke_test.sh \
-  --candidate-image journal:verify --previous-image neosmemo/memos:0.31.0
+  --candidate-image kairos:verify --previous-image neosmemo/memos:0.31.0
 ```
 
 For a failed pending release, use the restricted rollback gate described below
@@ -187,12 +187,15 @@ Configure GitHub Actions secrets `MEMOS_PREDEPLOY_SSH_KEY`,
 The SSH public key must use `restrict` with the forced command
 `/usr/bin/python3 /opt/memos-backup/journal_release_gate.py`; it permits only
 `prepare`, `confirm` and `rollback`, never a shell or arbitrary target.
-Install this script beside the backup modules on the approved Memos server.
+Install this script beside the backup modules on the approved Kairos server.
+Kairos prepare requests include the fixed image repository as well as commit and digest.
+Only the Kairos and legacy personal-journal repositories are accepted; old tagged
+workflows without the repository field continue to confirm their exact legacy image.
 
-After all CI and image smoke checks pass, the gate stops only Memos writes,
+After all CI and image smoke checks pass, the gate stops only Kairos writes,
 retains a verified local snapshot and completes encrypted R2 backup. The release
 declaration then pins the published digest and its GitHub App push event deploys
-only the Memos Compose configured for that branch. Public profile identity and private access are checked before confirmation;
+only the Kairos Compose configured for that branch. Public profile identity and private access are checked before confirmation;
 confirmation also verifies the running digest and Docker health. An eight minute
 guard restores availability if the pipeline is interrupted; preparation itself
 has a six minute deadline. No whole-host restart is used.

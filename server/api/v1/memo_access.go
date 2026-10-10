@@ -8,8 +8,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/usememos/memos/core/access"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/access"
+	"github.com/EgoSay/kairos/store"
 )
 
 // buildMemoReadContext resolves authorization inputs for exactly one memo.

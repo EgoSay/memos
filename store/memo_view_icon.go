@@ -3,7 +3,7 @@ package store
 import (
 	"github.com/pkg/errors"
 
-	storepb "github.com/usememos/memos/proto/gen/store"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
 )
 
 // ValidateMemoViewIcon validates optional display metadata for a saved view.

@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	storepb "github.com/usememos/memos/proto/gen/store"
-	"github.com/usememos/memos/provider/storage/s3"
-	"github.com/usememos/memos/store"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	"github.com/EgoSay/kairos/provider/storage/s3"
+	"github.com/EgoSay/kairos/store"
 )
 
 func TestNormalizeInstanceStorageSettingMigratesLegacyS3Config(t *testing.T) {

@@ -11,14 +11,14 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/usememos/memos/internal/ratelimit"
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	"github.com/usememos/memos/provider/ai"
-	"github.com/usememos/memos/provider/ai/audiollm"
-	audiollmgemini "github.com/usememos/memos/provider/ai/audiollm/gemini"
-	"github.com/usememos/memos/provider/ai/stt"
-	sttopenai "github.com/usememos/memos/provider/ai/stt/openai"
+	"github.com/EgoSay/kairos/internal/ratelimit"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	"github.com/EgoSay/kairos/provider/ai"
+	"github.com/EgoSay/kairos/provider/ai/audiollm"
+	audiollmgemini "github.com/EgoSay/kairos/provider/ai/audiollm/gemini"
+	"github.com/EgoSay/kairos/provider/ai/stt"
+	sttopenai "github.com/EgoSay/kairos/provider/ai/stt/openai"
 )
 
 const (

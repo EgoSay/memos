@@ -1,7 +1,7 @@
 {
-  "name": "Memos",
-  "short_name": "Memos",
-  "description": "Your own timeline for quick notes, private by default.",
+  "name": "Kairos",
+  "short_name": "Kairos",
+  "description": "A private home for your words, photos, and everyday moments.",
   "icons": [
     { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }

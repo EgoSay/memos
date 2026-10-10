@@ -1,6 +1,6 @@
 import { timestampDate } from "@bufbuild/protobuf/wkt";
 import copy from "copy-to-clipboard";
-import { ChevronRightIcon, CopyIcon, ExternalLinkIcon, KeyRoundIcon, PlusIcon, ScissorsIcon, Trash2Icon } from "lucide-react";
+import { ChevronRightIcon, CopyIcon, ExternalLinkIcon, KeyRoundIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { userServiceClient } from "@/connect";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { useDialog } from "@/hooks/useDialog";
-import { WEB_CLIPPER_URL } from "@/lib/constants";
 import { handleError } from "@/lib/error";
 import { CreatePersonalAccessTokenResponse, PersonalAccessToken } from "@/types/proto/api/v1/user_service_pb";
 import { useTranslate } from "@/utils/i18n";
@@ -89,21 +88,11 @@ const HowToUseDisclosure = () => {
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
               <a
                 className="inline-flex items-center gap-1 text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
-                href="https://usememos.com/docs/security/access-tokens"
+                href="https://github.com/EgoSay/kairos/blob/main/docs/api.md"
                 target="_blank"
                 rel="noreferrer"
               >
                 {t("common.learn-more")}
-                <ExternalLinkIcon className="size-3" />
-              </a>
-              <a
-                className="inline-flex items-center gap-1 text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
-                href={WEB_CLIPPER_URL}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <ScissorsIcon className="size-3" />
-                {t("setting.access-token.web-clipper-title")}
                 <ExternalLinkIcon className="size-3" />
               </a>
             </div>
@@ -144,15 +133,6 @@ const EmptyState = ({ onCreate }: { onCreate: () => void }) => {
           <PlusIcon className="w-4 h-4 mr-1.5" />
           {t("setting.access-token.create-first")}
         </Button>
-        <a
-          className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground"
-          href={WEB_CLIPPER_URL}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <ScissorsIcon className="size-3.5" />
-          {t("setting.access-token.web-clipper-title")}
-        </a>
       </div>
     </div>
   );

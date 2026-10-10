@@ -8,18 +8,17 @@
     "description": "Ein stad for notata, ideane og kvardagstankane dine, med open kjeldekode og drift på eigen tenar.",
     "distribution": "Distribusjon",
     "documents": "Dokumentasjon",
-    "documents-note": "Set opp, tilpass og bruk Memos",
+    "documents-note": "Set opp, tilpass og bruk Kairos",
     "github-repository": "Kodelager på GitHub",
     "github-repository-note": "Kjeldekode, saker og utgåver",
     "official-website": "Offisiell nettstad",
     "official-website-note": "Heimesida til prosjektet",
-    "powered-by": "Drive av Memos",
+    "powered-by": "Drive av Kairos",
     "project": "Prosjekt",
     "project-links": "Prosjektlenkjer",
-    "sponsor": "Støtt Memos",
-    "sponsor-note": "Støtt prosjektet på GitHub",
-    "web-clipper": "Memos-nettklippar",
-    "web-clipper-platforms": "Chrome + Firefox"
+    "tagline": "Keep a moment. Meet yourself again.",
+    "feedback": "Issues and ideas",
+    "feedback-note": "Help shape Kairos at your own pace"
   },
   "attachment-details": {
     "actions": {
@@ -194,7 +193,7 @@
     "settings": "Innstillingar",
     "share": "Del",
     "sign-in": "Logg inn",
-    "sign-in-to-memos": "Logg inn i Memos",
+    "sign-in-to-memos": "Logg inn i Kairos",
     "sign-out": "Logg ut",
     "sign-up": "Registrer deg",
     "statistics": "Statistikk",
@@ -217,8 +216,8 @@
   },
   "demo": {
     "banner-description": "Prøv deg gjerne fram! Denne demoen vert nullstilt med jamne mellomrom.",
-    "banner-title": "Memos-demo",
-    "deploy-link": "Set opp din eigen Memos-instans"
+    "banner-title": "Kairos-demo",
+    "deploy-link": "Set opp din eigen Kairos-instans"
   },
   "editor": {
     "add-your-comment-here": "Skriv kommentaren din her...",
@@ -457,7 +456,7 @@
   },
   "setting": {
     "access-token": {
-      "about-description": "Ein personleg åtgangslykel (PAT) er ein løynd lykel som autentiserer API-førespurnader på vegner av kontoen din. Alle appar og skript som har ein slik lykel, til dømes ein MCP-tenar, eit kommandolineverkty eller ein mobilklient, kan gjera alt du kan gjera i Memos, til lykelen går ut eller du slettar han. Send han som Bearer-legitimasjon i Authorization-hovudfeltet:",
+      "about-description": "Ein personleg åtgangslykel (PAT) er ein løynd lykel som autentiserer API-førespurnader på vegner av kontoen din. Alle appar og skript som har ein slik lykel, til dømes ein MCP-tenar, eit kommandolineverkty eller ein mobilklient, kan gjera alt du kan gjera i Kairos, til lykelen går ut eller du slettar han. Send han som Bearer-legitimasjon i Authorization-hovudfeltet:",
       "access-token-copied-to-clipboard": "Åtgangslykelen er kopiert til utklippstavla",
       "access-token-deleted": "Åtgangslykelen `{{description}}` er sletta",
       "access-token-deletion": "Er du viss på at du vil slette åtgangslykelen `{{description}}`?",
@@ -473,7 +472,7 @@
         "some-description": "Ei skildring..."
       },
       "create-first": "Opprett den fyrste lykelen din",
-      "description": "Opprett og kall attende dei løynde lyklane som lèt andre appar nytte Memos-API-et på dine vegner.",
+      "description": "Opprett og kall attende dei løynde lyklane som lèt andre appar nytte Kairos-API-et på dine vegner.",
       "empty-description": "Ein lykel lèt eit skript eller ein app kalle API-et på dine vegner. Han vert vist éin gong når du opprettar han, og vert sidan lista her slik at du kan kalle han attende.",
       "empty-title": "Ingen åtgangslyklar enno",
       "expires": "Går ut",
@@ -487,8 +486,7 @@
       "never-used": "Aldri nytta",
       "no-expiration": "Utan utlaup",
       "title": "Åtgangslyklar",
-      "token": "Lykel",
-      "web-clipper-title": "Nytt ein lykel med Memos-nettklipparen"
+      "token": "Lykel"
     },
     "account": {
       "attachment-storage": "Vedleggslagring",
@@ -509,17 +507,17 @@
       "add-provider": "Legg til tilbydar",
       "api-key": "API-lykel",
       "api-key-required": "API-lykel er naudsynt.",
-      "byok-description": "Kople til OpenAI eller Gemini med ein API-lykel frå din eigen konto. Memos kallar tilbydaren direkte frå denne tenaren.",
-      "byok-key-note": "Nytt ein lykel frå kontoen din hjå tilbydaren; Memos leverer ikkje felles KI-legitimasjon.",
+      "byok-description": "Kople til OpenAI eller Gemini med ein API-lykel frå din eigen konto. Kairos kallar tilbydaren direkte frå denne tenaren.",
+      "byok-key-note": "Nytt ein lykel frå kontoen din hjå tilbydaren; Kairos leverer ikkje felles KI-legitimasjon.",
       "byok-label": "Eigen lykel",
-      "byok-model-note": "Memos vel støtta modellar for funksjonar som ljodtranskripsjon.",
+      "byok-model-note": "Kairos vel støtta modellar for funksjonar som ljodtranskripsjon.",
       "byok-storage-note": "Lyklane vert verande på denne instansen og vert maskerte når innstillingane vert lasta.",
       "byok-title": "Nytt din eigen KI-konto",
       "configured": "Sett opp",
       "current-key": "Noverande lykel: {{key}}",
       "default-endpoint": "Standardendepunkt",
       "delete-provider": "Slette KI-tilbydaren `{{title}}`?",
-      "dialog-description": "Legg til ein lykel frå din eigen konto hjå tilbydaren. Memos nyttar innebygde modellar for kvar tilbydar; lat API-lykelfeltet stå tomt ved redigering for å halda på den lagra lykelen.",
+      "dialog-description": "Legg til ein lykel frå din eigen konto hjå tilbydaren. Kairos nyttar innebygde modellar for kvar tilbydar; lat API-lykelfeltet stå tomt ved redigering for å halda på den lagra lykelen.",
       "edit-provider": "Rediger tilbydar",
       "endpoint": "Endepunkt",
       "endpoint-hint": "Lat feltet stå tomt for å nytte det offisielle endepunktet til tilbydaren.",
@@ -605,9 +603,9 @@
       "remove-reaction": "Fjern reaksjon"
     },
     "memo-export": {
-      "description": "Flytt notata og vedlegga dine mellom Memos-instansar med éi ZIP-fil.",
+      "description": "Flytt notata og vedlegga dine mellom Kairos-instansar med éi ZIP-fil.",
       "export-action": "Eksporter notat",
-      "export-description": "Last ned alle notata du har oppretta, med kommentarar, arkiverte notat og vedleggsfiler, i Memos-eksportformatet.",
+      "export-description": "Last ned alle notata du har oppretta, med kommentarar, arkiverte notat og vedleggsfiler, i Kairos-eksportformatet.",
       "export-detail": "Ei ZIP-fil med éi Markdown-fil og éin JSON-post per notat.",
       "export-failed": "Eksporten mislukkast diverre.",
       "export-label": "Last ned fil",
@@ -617,8 +615,8 @@
       "import-action": "Vel fil",
       "import-another": "Importer ei anna fil",
       "import-confirm": "Importer {{count}} notat",
-      "import-description": "Importer ei Memos-eksportfil frå denne eller ein annan Memos-instans. Notata held på identifikatorane sine, så det vert ikkje oppretta duplikat om du importerer den same fila to gonger.",
-      "import-detail": "Vel ei ZIP-fil eksportert av Memos.",
+      "import-description": "Importer ei Kairos-eksportfil frå denne eller ein annan Kairos-instans. Notata held på identifikatorane sine, så det vert ikkje oppretta duplikat om du importerer den same fila to gonger.",
+      "import-detail": "Vel ei ZIP-fil eksportert av Kairos.",
       "import-failed": "Importen mislukkast diverre.",
       "import-label": "Last opp fil",
       "import-success": "Importerte {{created}} nye notat og oppdaterte {{updated}} notat.",
@@ -725,7 +723,7 @@
     "spaces": {
       "accept": "Godta",
       "accept-success": "Invitasjonen er godteken. {{space}} er no i Romma dine.",
-      "active-user": "Aktiv Memos-brukar",
+      "active-user": "Aktiv Kairos-brukar",
       "admin-role-description": "Kan redigere dette rommet, invitere brukarar og administrere medlemer.",
       "already-invited": "Ein invitasjon ventar alt på svar",
       "already-member": "Alt medlem",
@@ -748,7 +746,7 @@
       "general": "Allment",
       "invitation-pending": "Invitasjonen ventar på svar",
       "invitations": "Invitasjonar",
-      "invite-description": "Inviter nokon som alt har ein Memos-konto. Brukaren må godta invitasjonen før vedkomande vert med i rommet.",
+      "invite-description": "Inviter nokon som alt har ein Kairos-konto. Brukaren må godta invitasjonen før vedkomande vert med i rommet.",
       "invite-member": "Inviter medlem",
       "invite-success": "Invitasjonen er send til @{{username}}.",
       "invite-to": "Inviter til {{space}}",
@@ -772,7 +770,7 @@
       "members-count": "{{count}} medlemer",
       "members-description": "Folk som kan sjå og medverke i dette rommet.",
       "members-load-error": "Klarte diverre ikkje å laste medlemene.",
-      "memos-user": "Memos-brukar",
+      "memos-user": "Kairos-brukar",
       "no-description": "Inga skildring enno.",
       "no-pending-invitations": "Ingen invitasjonar ventar på svar.",
       "no-spaces": "Ingen rom enno",
@@ -797,7 +795,7 @@
       "spaces-count": "{{count}} rom",
       "title": "Rom",
       "untitled": "Rom utan namn",
-      "user-not-found": "Fann ingen aktiv Memos-brukar for @{{username}}.",
+      "user-not-found": "Fann ingen aktiv Kairos-brukar for @{{username}}.",
       "user-role-description": "Kan sjå og medverke i dette rommet.",
       "you": "Du",
       "your-access": "Åtgangen din",
@@ -971,7 +969,7 @@
   },
   "space": {
     "all-spaces": "Alle rom",
-    "back-to-memos": "Attende til Memos",
+    "back-to-memos": "Attende til Kairos",
     "create": "Opprett rom",
     "create-description": "Opprett ein felles stad for notat og medlemer.",
     "create-success": "Rommet er oppretta",

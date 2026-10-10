@@ -1,5 +1,5 @@
-name: Personal Journal Image
-run-name: Deploy journal ${{ github.ref_name }}
+name: Kairos Image
+run-name: Deploy Kairos ${{ github.ref_name }}
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
           # Use the checked-out commit for both lightweight and annotated tags.
           echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           owner=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
-          echo "image=ghcr.io/$owner/memos-journal" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/$owner/kairos" >> "$GITHUB_OUTPUT"
   frontend:
     needs: release
     uses: ./.github/workflows/frontend-tests.yml
@@ -62,14 +62,14 @@ jobs:
           file: scripts/Dockerfile.dokploy
           platforms: linux/amd64
           load: true
-          tags: journal:verify
+          tags: kairos:verify
           build-args: |
             VERSION=${{ needs.release.outputs.version }}
             COMMIT=${{ needs.release.outputs.commit }}
           cache-from: type=gha,scope=journal
           cache-to: type=gha,scope=journal,mode=max
       - name: Verify bundled frontend and restart persistence
-        run: bash scripts/release_smoke_test.sh --candidate-image journal:verify --previous-image neosmemo/memos:0.31.0
+        run: bash scripts/release_smoke_test.sh --candidate-image kairos:verify --previous-image neosmemo/memos:0.31.0
       - name: Publish verified image
         id: publish
         env:
@@ -77,9 +77,9 @@ jobs:
           RELEASE_VERSION: ${{ needs.release.outputs.version }}
           RELEASE_COMMIT: ${{ needs.release.outputs.commit }}
         run: |
-          docker tag journal:verify "$IMAGE:$RELEASE_VERSION"
-          docker tag journal:verify "$IMAGE:$RELEASE_COMMIT"
-          docker tag journal:verify "$IMAGE:production"
+          docker tag kairos:verify "$IMAGE:$RELEASE_VERSION"
+          docker tag kairos:verify "$IMAGE:$RELEASE_COMMIT"
+          docker tag kairos:verify "$IMAGE:production"
           docker push "$IMAGE:$RELEASE_VERSION"
           docker push "$IMAGE:$RELEASE_COMMIT"
           docker push "$IMAGE:production"
@@ -109,11 +109,12 @@ jobs:
         env:
           RELEASE_COMMIT: ${{ needs.release.outputs.commit }}
           RELEASE_DIGEST: ${{ steps.publish.outputs.digest }}
+          RELEASE_IMAGE: ${{ needs.release.outputs.image }}
           DEPLOY_HOST: ${{ secrets.MEMOS_DEPLOY_HOST }}
         run: |
           python3 - <<'PY' > "$RUNNER_TEMP/memos-release.json"
           import json, os
-          print(json.dumps({'commit': os.environ['RELEASE_COMMIT'], 'digest': os.environ['RELEASE_DIGEST']}))
+          print(json.dumps({'commit': os.environ['RELEASE_COMMIT'], 'digest': os.environ['RELEASE_DIGEST'], 'repository': os.environ['RELEASE_IMAGE']}))
           PY
           ssh -T -i "$RUNNER_TEMP/memos-key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/memos-hosts" -o ConnectTimeout=15 root@"$DEPLOY_HOST" prepare < "$RUNNER_TEMP/memos-release.json"
       - uses: actions/checkout@v6
@@ -134,7 +135,7 @@ jobs:
           digest = os.environ['RELEASE_DIGEST']
           assert re.fullmatch('sha256:[a-f0-9]{64}', digest)
           source = pathlib.Path('scripts/compose.dokploy.yaml').read_text()
-          pinned = re.sub(r'(?m)^    image: .*$', '    image: ghcr.io/egosay/memos-journal@' + digest, source, count=1)
+          pinned = re.sub(r'(?m)^    image: .*$', '    image: ghcr.io/egosay/kairos@' + digest, source, count=1)
           pathlib.Path('production-state/scripts/compose.production.yaml').write_text(pinned)
           pathlib.Path('production-state/.journal-release.json').write_text(json.dumps({'commit': os.environ['RELEASE_COMMIT'], 'digest': digest}))
           PY
@@ -154,7 +155,7 @@ jobs:
           import json, os, time, urllib.request
           for attempt in range(60):
               try:
-                  request = urllib.request.Request('https://memos.cjwdream.top/api/v1/instance/profile', headers={'User-Agent': 'Memos-Deploy/1.0'})
+                  request = urllib.request.Request('https://memos.cjwdream.top/api/v1/instance/profile', headers={'User-Agent': 'Kairos-Deploy/1.0'})
                   with urllib.request.urlopen(request, timeout=10) as response:
                       profile = json.load(response)
                   if profile.get('commit') == os.environ['RELEASE_COMMIT'] and profile.get('accessMode') == 'INSTANCE_ACCESS_MODE_PRIVATE' and not profile.get('needsSetup'):

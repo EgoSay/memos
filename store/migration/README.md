@@ -5,9 +5,9 @@ This is a fixed baseline, independent of application release numbering.
 
 - Fresh installations use the driver's `LATEST.sql` and record the current schema version.
 - Existing databases below the baseline must first run
-  [v0.31.0](https://github.com/usememos/memos/releases/tag/v0.31.0) successfully.
+  [v0.31.0](https://github.com/EgoSay/kairos/releases/tag/v0.31.0) successfully.
 - Databases older than v0.22, or with no schema version recorded, must first run
-  [v0.25.3](https://github.com/usememos/memos/releases/tag/v0.25.3), then v0.31.0.
+  [v0.25.3](https://github.com/EgoSay/kairos/releases/tag/v0.25.3), then v0.31.0.
 - Invalid schema versions and databases newer than the binary supports are rejected.
 
 Historical SemVer migration scripts are retained in Git history and released

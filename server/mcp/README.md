@@ -238,7 +238,7 @@ not replace API authorization.
 - a bare array becomes `{ "result": [...] }`;
 - a scalar becomes `{ "result": value }`.
 
-This is deliberate: it fixes [#6022](https://github.com/usememos/memos/issues/6022),
+This is deliberate: it fixes [#6022](https://github.com/EgoSay/kairos/issues/6022),
 where collection tools returned a bare array that strict MCP clients reject.
 
 Inside that envelope the API's JSON is passed through verbatim, so the gateway's
@@ -247,7 +247,7 @@ the output schema resolved from the same OpenAPI spec. grpc-gateway's stock
 marshaler emits `null` for unset message fields, which no schema declares as
 nullable — `RegisterGateway` therefore installs a marshaler that omits them
 (`newGatewayMarshaler` in `server/api/v1/v1.go`). That fixes
-[#6139](https://github.com/usememos/memos/issues/6139), where `"motionMedia": null`
+[#6139](https://github.com/EgoSay/kairos/issues/6139), where `"motionMedia": null`
 failed every tool call returning an attachment.
 
 ## Error handling

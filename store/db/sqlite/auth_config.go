@@ -8,7 +8,7 @@ import (
 	msqlite "modernc.org/sqlite"
 	sqlite3 "modernc.org/sqlite/lib"
 
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 // IsRetryableAuthenticationMutationError reports whether err is a transient SQLite locking failure.

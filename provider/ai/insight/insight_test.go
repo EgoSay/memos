@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/usememos/memos/provider/ai"
+	"github.com/EgoSay/kairos/provider/ai"
 )
 
 func TestGenerateSendsOnlySelectedInputAndRejectsInventedReferences(t *testing.T) {

@@ -12,8 +12,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/core/access"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/access"
+	"github.com/EgoSay/kairos/store"
 )
 
 // Preferences are optional reading and display choices, never tasks.

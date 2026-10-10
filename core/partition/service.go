@@ -9,8 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/internal/webhook"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/internal/webhook"
+	"github.com/EgoSay/kairos/store"
 )
 
 func (s *Service) ListPartitions(ctx context.Context, owner int32) ([]*Partition, error) {

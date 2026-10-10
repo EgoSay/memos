@@ -13,7 +13,7 @@ import (
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stretchr/testify/require"
 
-	"github.com/usememos/memos/internal/clientip"
+	"github.com/EgoSay/kairos/internal/clientip"
 )
 
 func TestNormalizeStructuredContentKeepsObjects(t *testing.T) {

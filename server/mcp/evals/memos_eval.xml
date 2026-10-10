@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Task-level evaluation for the memos MCP server.
+  Task-level evaluation for the Kairos MCP server.
 
   These questions test whether an LLM can accomplish realistic tasks by
   composing the curated MCP tools (memo_list_memos with CEL filters,
@@ -11,8 +11,7 @@
   Answers are pinned to the deterministic seed in
   store/seed/sqlite/01__dump.sql and were verified by querying a fresh
   demo-mode instance through the MCP tools. Run against a freshly seeded
-  instance ONLY (the public demo at demo.usememos.com is a shared, mutable
-  account and will not match). See README.md in this directory for how to
+  instance ONLY (shared demo accounts change and will not match). See README.md in this directory for how to
   launch one.
 
   Questions deliberately avoid absolute dates: the seed uses relative
@@ -34,7 +33,7 @@
   </qa_pair>
   <qa_pair>
     <question>Two memos are pinned. One contains a task list and the other does not. Give the single tag of the pinned memo that does NOT contain a task list.</question>
-    <answer>sponsors</answer>
+    <answer>contributors</answer>
   </qa_pair>
   <qa_pair>
     <question>How many memos contain at least one fenced code block?</question>

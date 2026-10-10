@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/internal/identifier"
+	"github.com/EgoSay/kairos/internal/identifier"
 )
 
 // sha256Pattern is a lowercase hexadecimal SHA-256 digest.

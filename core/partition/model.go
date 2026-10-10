@@ -8,8 +8,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/internal/webhook"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/internal/webhook"
+	"github.com/EgoSay/kairos/store"
 )
 
 const (

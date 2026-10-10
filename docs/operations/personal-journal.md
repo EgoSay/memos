@@ -1,4 +1,4 @@
-# 私人生活记录：运行与数据保障
+# Kairos：日常运行与数据保障
 
 本实现承接 PRD v0.2。用户在创建 18 条开发议题后明确授权按 issue 迭代开发；旧设计文档中的“仅需求阶段”是历史基线，不是当前实施状态。原设计文件保持冻结；工程验证见 [验收记录](personal-journal-validation.md)。
 
@@ -23,8 +23,8 @@ cd web
 pnpm install --frozen-lockfile
 pnpm release
 cd ..
-go build -buildvcs=true -o memos-journal ./cmd/memos
-./memos-journal --addr 127.0.0.1 --port 5230 --data /absolute/private-data
+go build -buildvcs=true -o kairos ./cmd/memos
+./kairos --addr 127.0.0.1 --port 5230 --data /absolute/private-data
 ```
 
 启动不传 `--instance-url`，新私有实例保持私密访问模式；首次进入由本人建立管理员账户。部署公网、HTTPS、域名和账户密钥需要对应部署环境，不应将本机端口测试等同于上线。旧实例升级前先停止写入并备份；26.10 迁移为三个数据库新增 journal_document，不自动改动旧公开记录。

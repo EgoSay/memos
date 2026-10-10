@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
 )
 
 // TestGatewayMarshalerOmitsUnsetMessageFields pins the REST payload shape the

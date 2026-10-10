@@ -6,7 +6,7 @@ import (
 	stderrors "errors"
 	"slices"
 
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 type sqliteRelationMemoState struct {

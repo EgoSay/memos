@@ -31,7 +31,7 @@ const filterState = vi.hoisted(() => ({ filters: [] as MemoFilter[] }));
 const tagsSectionHook = vi.hoisted(() => vi.fn());
 
 vi.mock("@/components/MemosLogo", () => ({
-  default: ({ size }: { size?: string }) => <span data-logo-size={size}>Memos logo</span>,
+  default: ({ size }: { size?: string }) => <span data-logo-size={size}>Kairos logo</span>,
 }));
 
 vi.mock("@/components/MemoDisplaySettingMenu", () => ({
@@ -276,11 +276,11 @@ describe("App sidebar logo", () => {
     const search = within(primaryNavigation).getByRole("button", { name: "查找记录" });
 
     expect(header).toHaveClass("h-13", "px-3");
-    expect(switcher).toHaveTextContent("Memos logo");
+    expect(switcher).toHaveTextContent("Kairos logo");
     expect(switcher).toHaveClass("min-w-0", "h-9", "gap-2", "px-2");
     expect(switcher).not.toHaveClass("px-1");
     expect(switcher.firstElementChild).not.toHaveClass("flex-1");
-    expect(within(switcher).getByText("Memos logo")).toHaveAttribute("data-logo-size", "header");
+    expect(within(switcher).getByText("Kairos logo")).toHaveAttribute("data-logo-size", "header");
     expect(switcher.querySelector(".lucide-chevrons-up-down")).not.toBeNull();
     expect(switcher.querySelector(".lucide-chevron-down")).toBeNull();
     expect(compose).toHaveClass("size-7", "rounded-md", "border", "bg-background", "shadow-xs");
@@ -329,7 +329,7 @@ describe("App sidebar logo", () => {
     "/memos/123",
     "/memos/shares/token",
     "/404",
-  ])("shows Memos in the switcher on global page %s", (path) => {
+  ])("shows Kairos in the switcher on global page %s", (path) => {
     const product = { name: "spaces/product", title: "Product", description: "" };
     spaceState.spaces = [product];
     spaceState.selectedSpace = product;
@@ -342,7 +342,7 @@ describe("App sidebar logo", () => {
 
     const brand = screen.getByRole("button", { name: "space.switch: common.memos" });
     expect(brand).toHaveClass("h-9", "gap-2", "px-2");
-    expect(within(brand).getByText("Memos logo")).toHaveAttribute("data-logo-size", "header");
+    expect(within(brand).getByText("Kairos logo")).toHaveAttribute("data-logo-size", "header");
   });
 
   it("scopes collection statistics to the selected Space", () => {
@@ -430,7 +430,7 @@ describe("App sidebar logo", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("button", { name: "space.switch: common.memos" })).toHaveTextContent("Memos logo");
+    expect(screen.getByRole("button", { name: "space.switch: common.memos" })).toHaveTextContent("Kairos logo");
     const primaryNavigation = screen.getByRole("navigation", { name: "Primary" });
     expect(primaryNavigation).toHaveClass("h-7", "items-center", "gap-1", "px-3");
     expect(primaryNavigation).not.toHaveClass("flex-col");
@@ -468,7 +468,7 @@ describe("App sidebar logo", () => {
     for (const link of creatorLinks) {
       expect(link.querySelector("img")).toHaveAttribute("src", "/avatar.png");
     }
-    expect(screen.queryByRole("link", { name: "Memos logo" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Kairos logo" })).not.toBeInTheDocument();
   });
 
   it("shows the selected username while the guest profile is loading", () => {
@@ -494,13 +494,16 @@ describe("App sidebar logo", () => {
     expect(screen.getByRole("link", { name: "common.about" })).not.toHaveAttribute("aria-current");
     expect(screen.getByRole("heading", { name: "common.resources", level: 2 })).toBeInTheDocument();
     const documentationLink = screen.getByRole("link", { name: "about.documents" });
-    expect(documentationLink).toHaveAttribute("href", "https://usememos.com/docs");
+    expect(documentationLink).toHaveAttribute("href", "https://github.com/EgoSay/kairos/blob/main/docs/usage.md");
     expect(documentationLink).toHaveAttribute("target", "_blank");
     expect(documentationLink).toHaveAttribute("rel", "noreferrer");
     fireEvent.click(documentationLink);
     expect(sidebarState.setMobileOpen).toHaveBeenCalledWith(false);
-    expect(screen.getByRole("link", { name: "about.api-docs" })).toHaveAttribute("href", "https://usememos.com/docs/api");
-    expect(screen.getByRole("link", { name: "about.github-repository" })).toHaveAttribute("href", "https://github.com/usememos/memos");
+    expect(screen.getByRole("link", { name: "about.api-docs" })).toHaveAttribute(
+      "href",
+      "https://github.com/EgoSay/kairos/blob/main/docs/api.md",
+    );
+    expect(screen.getByRole("link", { name: "about.github-repository" })).toHaveAttribute("href", "https://github.com/EgoSay/kairos");
     expect(screen.queryByText("Calendar")).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "common.statistics" })).not.toBeInTheDocument();
     expect(screen.queryByText("common.views")).not.toBeInTheDocument();

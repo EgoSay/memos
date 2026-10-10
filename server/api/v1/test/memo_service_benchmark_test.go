@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/usememos/memos/internal/profile"
-	"github.com/usememos/memos/internal/version"
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	apiv1 "github.com/usememos/memos/server/api/v1"
-	"github.com/usememos/memos/server/auth"
-	"github.com/usememos/memos/store"
-	"github.com/usememos/memos/store/db"
+	"github.com/EgoSay/kairos/internal/profile"
+	"github.com/EgoSay/kairos/internal/version"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	apiv1 "github.com/EgoSay/kairos/server/api/v1"
+	"github.com/EgoSay/kairos/server/auth"
+	"github.com/EgoSay/kairos/store"
+	"github.com/EgoSay/kairos/store/db"
 )
 
 const (

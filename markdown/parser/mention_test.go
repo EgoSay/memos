@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/usememos/memos/internal/identifier"
+	"github.com/EgoSay/kairos/internal/identifier"
 )
 
 func TestFindMentionMatches(t *testing.T) {

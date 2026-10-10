@@ -24,12 +24,12 @@ import (
 	// sqlite driver.
 	_ "modernc.org/sqlite"
 
-	"github.com/usememos/memos/internal/profile"
-	"github.com/usememos/memos/internal/version"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	"github.com/usememos/memos/server"
-	"github.com/usememos/memos/store"
-	"github.com/usememos/memos/store/db"
+	"github.com/EgoSay/kairos/internal/profile"
+	"github.com/EgoSay/kairos/internal/version"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	"github.com/EgoSay/kairos/server"
+	"github.com/EgoSay/kairos/store"
+	"github.com/EgoSay/kairos/store/db"
 )
 
 const (

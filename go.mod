@@ -1,4 +1,4 @@
-module github.com/usememos/memos
+module github.com/EgoSay/kairos
 
 go 1.27.0
 

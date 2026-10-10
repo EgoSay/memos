@@ -13,9 +13,9 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	apiv1 "github.com/usememos/memos/proto/gen/api/v1"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	"github.com/usememos/memos/store"
+	apiv1 "github.com/EgoSay/kairos/proto/gen/api/v1"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 func TestAnonymousMemoAccessFollowsInstanceAccessSetting(t *testing.T) {
@@ -1298,7 +1298,7 @@ func TestGlobalFeedExcludesCommentsUntilContextIsDeleted(t *testing.T) {
 }
 
 // TestCreateMemoWithCustomTimestamps tests that custom timestamps can be set when creating memos and comments.
-// This addresses issue #5483: https://github.com/usememos/memos/issues/5483
+// This addresses issue #5483: https://github.com/EgoSay/kairos/issues/5483
 func TestCreateMemoWithCustomTimestamps(t *testing.T) {
 	ctx := context.Background()
 

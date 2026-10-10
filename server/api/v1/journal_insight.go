@@ -12,11 +12,11 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/core/journal"
-	"github.com/usememos/memos/internal/ratelimit"
-	"github.com/usememos/memos/provider/ai"
-	"github.com/usememos/memos/provider/ai/insight"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/journal"
+	"github.com/EgoSay/kairos/internal/ratelimit"
+	"github.com/EgoSay/kairos/provider/ai"
+	"github.com/EgoSay/kairos/provider/ai/insight"
+	"github.com/EgoSay/kairos/store"
 )
 
 type journalAIConfig struct {

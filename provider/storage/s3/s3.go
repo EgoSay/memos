@@ -18,7 +18,7 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"github.com/pkg/errors"
 
-	storepb "github.com/usememos/memos/proto/gen/store"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
 )
 
 // ErrRangeNotSatisfiable reports a ranged read whose byte range falls outside

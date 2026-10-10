@@ -10,8 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/internal/identifier"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/internal/identifier"
+	"github.com/EgoSay/kairos/store"
 )
 
 func attachmentOriginalPath(data, uid string) (string, error) {

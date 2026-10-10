@@ -28,19 +28,19 @@ linters:
             - "**/internal/**"
             - "!**/internal/testutil/**"
           deny:
-            - pkg: github.com/usememos/memos/store
+            - pkg: github.com/EgoSay/kairos/store
               desc: internal packages must not know the store; move the code to core or a root package
-            - pkg: github.com/usememos/memos/core
+            - pkg: github.com/EgoSay/kairos/core
               desc: internal packages must not import core
-            - pkg: github.com/usememos/memos/server
+            - pkg: github.com/EgoSay/kairos/server
               desc: internal packages must not import server
-            - pkg: github.com/usememos/memos/provider
+            - pkg: github.com/EgoSay/kairos/provider
               desc: internal packages must not import provider
-            - pkg: github.com/usememos/memos/markdown
+            - pkg: github.com/EgoSay/kairos/markdown
               desc: internal packages must not import markdown
-            - pkg: github.com/usememos/memos/filter
+            - pkg: github.com/EgoSay/kairos/filter
               desc: internal packages must not import filter
-            - pkg: github.com/usememos/memos/proto
+            - pkg: github.com/EgoSay/kairos/proto
               desc: internal packages must not import generated protos; only internal/testutil may
         engines-and-providers-sit-below-store:
           files:
@@ -48,25 +48,25 @@ linters:
             - "**/filter/**"
             - "**/provider/**"
           deny:
-            - pkg: github.com/usememos/memos/store
+            - pkg: github.com/EgoSay/kairos/store
               desc: markdown, filter, and provider must not import store
-            - pkg: github.com/usememos/memos/core
+            - pkg: github.com/EgoSay/kairos/core
               desc: markdown, filter, and provider must not import core
-            - pkg: github.com/usememos/memos/server
+            - pkg: github.com/EgoSay/kairos/server
               desc: markdown, filter, and provider must not import server
         store-sits-below-core:
           files:
             - "**/store/**"
           deny:
-            - pkg: github.com/usememos/memos/core
+            - pkg: github.com/EgoSay/kairos/core
               desc: store must not import core; business rules that span store calls live in core
-            - pkg: github.com/usememos/memos/server
+            - pkg: github.com/EgoSay/kairos/server
               desc: store must not import server
         core-sits-below-server:
           files:
             - "**/core/**"
           deny:
-            - pkg: github.com/usememos/memos/server
+            - pkg: github.com/EgoSay/kairos/server
               desc: core must not import server; transports call core, not the reverse
     exhaustive:
       explicit-exhaustive-switch: false
@@ -149,4 +149,4 @@ formatters:
   settings:
     goimports:
       local-prefixes:
-        - github.com/usememos/memos
+        - github.com/EgoSay/kairos

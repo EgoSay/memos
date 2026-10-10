@@ -20,7 +20,7 @@ import (
 var ErrInternalIP = errors.New("internal IP addresses are not allowed")
 
 const (
-	defaultLinkPreviewUserAgent = "MemosBot/1.0 (+https://usememos.com)"
+	defaultLinkPreviewUserAgent = "KairosBot/1.0 (+https://github.com/EgoSay/kairos)"
 
 	maxHTMLMetaBytes     = 512 * 1024
 	maxOEmbedBytes       = 128 * 1024

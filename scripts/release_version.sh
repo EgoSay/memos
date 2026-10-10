@@ -49,7 +49,11 @@ previous_release_image() {
     echo 'Pass --previous-image' >&2
     return 1
   fi
-  printf 'neosmemo/memos:%s\n' "${tag#v}"
+  case "$tag" in
+    v0.31.*) printf 'neosmemo/memos:%s\n' "${tag#v}" ;;
+    26.10.1) printf 'ghcr.io/egosay/memos-journal:%s\n' "$tag" ;; # Pre-Kairos production release.
+    *) printf 'ghcr.io/egosay/kairos:%s\n' "$tag" ;;
+  esac
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then

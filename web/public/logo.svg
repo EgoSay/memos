@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Kairos">
+  <rect width="512" height="512" rx="128" fill="#263a35"/>
+  <path d="M162 132v248M340 142 208 256l132 114" fill="none" stroke="#f5f0e6" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="362" cy="116" r="23" fill="#d7ab71"/>
+</svg>

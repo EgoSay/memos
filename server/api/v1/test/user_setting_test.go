@@ -8,9 +8,9 @@ import (
 	colorpb "google.golang.org/genproto/googleapis/type/color"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
-	apiv1 "github.com/usememos/memos/proto/gen/api/v1"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	apiv1server "github.com/usememos/memos/server/api/v1"
+	apiv1 "github.com/EgoSay/kairos/proto/gen/api/v1"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	apiv1server "github.com/EgoSay/kairos/server/api/v1"
 )
 
 func TestListUserSettingsOmitsInternalStoreSettings(t *testing.T) {

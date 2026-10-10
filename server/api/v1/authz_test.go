@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/usememos/memos/server/auth"
+	"github.com/EgoSay/kairos/server/auth"
 )
 
 type stubAnonymousAccessStore struct {

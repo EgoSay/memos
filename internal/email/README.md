@@ -1,6 +1,6 @@
 # Email Plugin
 
-SMTP email sending functionality for self-hosted Memos instances.
+SMTP email sending functionality for self-hosted Kairos instances.
 
 ## Overview
 
@@ -23,7 +23,7 @@ This plugin provides a simple, reliable email sending interface following indust
 ### 1. Configure SMTP Settings
 
 ```go
-import "github.com/usememos/memos/internal/email"
+import "github.com/EgoSay/kairos/internal/email"
 
 config := &email.Config{
     SMTPHost:     "smtp.gmail.com",
@@ -31,7 +31,7 @@ config := &email.Config{
     SMTPUsername: "your-email@gmail.com",
     SMTPPassword: "your-app-password",
     FromEmail:    "noreply@yourdomain.com",
-    FromName:     "Memos",
+    FromName:     "Kairos",
     UseTLS:       true,
 }
 ```
@@ -69,7 +69,7 @@ config := &email.Config{
     SMTPUsername: "your-email@gmail.com",
     SMTPPassword: "your-16-char-app-password",
     FromEmail:    "your-email@gmail.com",
-    FromName:     "Memos",
+    FromName:     "Kairos",
     UseTLS:       true,
 }
 ```
@@ -82,7 +82,7 @@ config := &email.Config{
     SMTPUsername: "your-email@gmail.com",
     SMTPPassword: "your-16-char-app-password",
     FromEmail:    "your-email@gmail.com",
-    FromName:     "Memos",
+    FromName:     "Kairos",
     UseSSL:       true,
 }
 ```
@@ -96,7 +96,7 @@ config := &email.Config{
     SMTPUsername: "apikey",
     SMTPPassword: "your-sendgrid-api-key",
     FromEmail:    "noreply@yourdomain.com",
-    FromName:     "Memos",
+    FromName:     "Kairos",
     UseTLS:       true,
 }
 ```
@@ -110,7 +110,7 @@ config := &email.Config{
     SMTPUsername: "your-smtp-username",
     SMTPPassword: "your-smtp-password",
     FromEmail:    "verified@yourdomain.com",
-    FromName:     "Memos",
+    FromName:     "Kairos",
     UseTLS:       true,
 }
 ```
@@ -126,7 +126,7 @@ config := &email.Config{
     SMTPUsername: "postmaster@yourdomain.com",
     SMTPPassword: "your-mailgun-smtp-password",
     FromEmail:    "noreply@yourdomain.com",
-    FromName:     "Memos",
+    FromName:     "Kairos",
     UseTLS:       true,
 }
 ```
@@ -140,7 +140,7 @@ config := &email.Config{
     SMTPUsername: "username",
     SMTPPassword: "password",
     FromEmail:    "noreply@yourdomain.com",
-    FromName:     "Memos",
+    FromName:     "Kairos",
     UseTLS:       true,
 }
 ```
@@ -209,7 +209,7 @@ package main
 
 import (
     "log"
-    "github.com/usememos/memos/internal/email"
+    "github.com/EgoSay/kairos/internal/email"
 )
 
 func main() {
@@ -492,8 +492,8 @@ This package follows the Memos contribution guidelines. Please ensure:
 
 For issues and questions:
 
-- Memos GitHub Issues: https://github.com/usememos/memos/issues
-- Memos Documentation: https://usememos.com/docs
+- Memos GitHub Issues: https://github.com/EgoSay/kairos/issues
+- Kairos documentation: https://github.com/EgoSay/kairos/blob/main/docs/usage.md
 
 ## Roadmap
 

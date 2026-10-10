@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	storepb "github.com/usememos/memos/proto/gen/store"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
 )
 
 // MemoRecordSnapshot describes all editable record data. Pinned status and

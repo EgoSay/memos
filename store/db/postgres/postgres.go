@@ -9,8 +9,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/internal/profile"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/internal/profile"
+	"github.com/EgoSay/kairos/store"
 )
 
 type DB struct {

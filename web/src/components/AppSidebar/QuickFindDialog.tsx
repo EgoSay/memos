@@ -191,7 +191,7 @@ const QuickFindDialog = () => {
                 <div className="min-w-0 space-y-1 text-xs text-muted-foreground">
                   <p id={hintId}>{t("search.keyboard-hint")}</p>
                   <a
-                    href="https://usememos.com/docs/usage/shortcuts#filter-expression-syntax"
+                    href="https://github.com/EgoSay/kairos/blob/main/docs/usage.md#搜索"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-block underline underline-offset-2 hover:text-foreground"

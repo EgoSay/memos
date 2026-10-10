@@ -1,6 +1,6 @@
 # MCP Evaluations
 
-Task-level evaluations for the memos MCP server. Where the `*_test.go` files
+Task-level evaluations for the Kairos MCP server. Where the `*_test.go` files
 verify the server *plumbing* (schema resolution, tool naming, annotations),
 these check the thing that actually matters for an MCP server: **can an LLM
 accomplish realistic tasks by composing the tools?** They are the regression
@@ -28,9 +28,8 @@ Answers are pinned to the deterministic seed in
 - One attachment, owned by `bob` and bound to `memos/goldenhour0001`.
 - No saved memo views and no pending invitations.
 
-The public demo (`demo.usememos.com`) signs everyone into the **same shared
-account**, so visitors continually add/edit/delete memos, reactions, and spaces.
-Its data has already diverged from the seed — do **not** evaluate against it.
+Use an isolated local fixture. Shared demo sites change as visitors add, edit,
+and delete data, so their answers do not match this deterministic seed.
 
 The seed uses **relative** timestamps (`strftime('now','-N days')`), so the
 questions avoid absolute dates and rely only on relative ordering, counts, and

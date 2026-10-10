@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/usememos/memos/store"
-	"github.com/usememos/memos/store/db"
+	"github.com/EgoSay/kairos/store"
+	"github.com/EgoSay/kairos/store/db"
 )
 
 func TestReactionStore(t *testing.T) {

@@ -12,9 +12,9 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/require"
 
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	apiv1 "github.com/usememos/memos/server/api/v1"
-	"github.com/usememos/memos/server/auth"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	apiv1 "github.com/EgoSay/kairos/server/api/v1"
+	"github.com/EgoSay/kairos/server/auth"
 )
 
 func TestSSEHandler_Authentication(t *testing.T) {

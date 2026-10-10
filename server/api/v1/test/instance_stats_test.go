@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
 )
 
 func TestGetInstanceStats_HappyPath(t *testing.T) {

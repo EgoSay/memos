@@ -403,7 +403,7 @@ func TestBuildCuratedToolsUseStandardSchemaFormats(t *testing.T) {
 	require.NoError(t, err)
 
 	// Formats registered by JSON Schema or ajv-formats; anything else trips
-	// strict clients (see https://github.com/usememos/memos/issues/6262).
+	// strict clients (see https://github.com/EgoSay/kairos/issues/6262).
 	allowedFormats := map[string]struct{}{
 		"date-time": {},
 		"int32":     {},

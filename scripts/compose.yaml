@@ -1,8 +1,25 @@
 services:
-  memos:
-    image: neosmemo/memos:stable
-    container_name: memos
+  kairos:
+    image: kairos:local
+    build:
+      context: ..
+      dockerfile: scripts/Dockerfile.dokploy
+      args:
+        VERSION: ${KAIROS_VERSION:-26.10}
+        COMMIT: ${KAIROS_COMMIT:-unknown}
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    environment:
+      TZ: ${KAIROS_TIMEZONE:-Asia/Shanghai}
+      MEMOS_PORT: "5230"
+      MEMOS_DATA: /var/opt/memos
+      MEMOS_DRIVER: sqlite
     volumes:
-      - ~/.memos/:/var/opt/memos
+      # The in-container data path is retained for archive compatibility.
+      - kairos-data:/var/opt/memos
     ports:
-      - 5230:5230
+      - "127.0.0.1:${KAIROS_PORT:-5230}:5230"
+
+volumes:
+  kairos-data:

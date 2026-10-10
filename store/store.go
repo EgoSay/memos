@@ -4,10 +4,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/usememos/memos/internal/profile"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	"github.com/usememos/memos/provider/storage"
-	"github.com/usememos/memos/store/cache"
+	"github.com/EgoSay/kairos/internal/profile"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	"github.com/EgoSay/kairos/provider/storage"
+	"github.com/EgoSay/kairos/store/cache"
 )
 
 // Store provides database access to all raw objects.

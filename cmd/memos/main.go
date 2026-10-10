@@ -13,13 +13,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/usememos/memos/internal/profile"
-	"github.com/usememos/memos/internal/version"
-	"github.com/usememos/memos/internal/webhook"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	"github.com/usememos/memos/server"
-	"github.com/usememos/memos/store"
-	"github.com/usememos/memos/store/db"
+	"github.com/EgoSay/kairos/internal/profile"
+	"github.com/EgoSay/kairos/internal/version"
+	"github.com/EgoSay/kairos/internal/webhook"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	"github.com/EgoSay/kairos/server"
+	"github.com/EgoSay/kairos/store"
+	"github.com/EgoSay/kairos/store/db"
 )
 
 func initSlogDefault() {
@@ -32,7 +32,7 @@ func initSlogDefault() {
 
 var (
 	rootCmd = &cobra.Command{
-		Use:           "memos",
+		Use:           "kairos",
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -41,7 +41,7 @@ var (
 	}
 	versionCmd = &cobra.Command{
 		Use:   "version",
-		Short: "Print the current Memos version",
+		Short: "Print the current Kairos version",
 		Run: func(cmd *cobra.Command, _ []string) {
 			// Print the root's version so every form shares one source.
 			fmt.Fprintln(cmd.OutOrStdout(), cmd.Root().Version)
@@ -63,7 +63,7 @@ func init() {
 	rootCmd.Flags().String("data", "", "data directory")
 	rootCmd.Flags().String("driver", "sqlite", "database driver (sqlite, mysql, postgres, d1)")
 	rootCmd.Flags().String("dsn", "", "database source name (DSN)")
-	rootCmd.Flags().String("instance-url", "", "canonical external URL of the Memos instance")
+	rootCmd.Flags().String("instance-url", "", "canonical external URL of the Kairos instance")
 	rootCmd.Flags().Bool("allow-private-webhooks", false, "allow webhooks to access any private/reserved IP address")
 	rootCmd.Flags().StringSlice("webhook-private-network-allowlist", nil, "private webhook destinations to allow (exact hostname, IP, or CIDR)")
 	rootCmd.Flags().String("log-level", "info", "log verbosity level (debug, info, warn, error)")
@@ -101,7 +101,7 @@ func init() {
 	// users for the `version` subcommand. Register the flag before Cobra's
 	// default so the shorthand stays `-V` rather than Cobra's `-v`, and use a
 	// bare template so all three print exactly the same string.
-	rootCmd.Flags().BoolP("version", "V", false, "print the current Memos version")
+	rootCmd.Flags().BoolP("version", "V", false, "print the current Kairos version")
 	rootCmd.Version = version.GetCurrentVersion()
 	rootCmd.SetVersionTemplate("{{.Version}}\n")
 
@@ -196,7 +196,7 @@ func privateWebhookAllowlist() []string {
 }
 
 func printServerInfo(profile *profile.Profile, accessMode storepb.InstanceAccessMode) {
-	fmt.Printf("Memos %s started successfully!\n", profile.Version)
+	fmt.Printf("Kairos %s started successfully!\n", profile.Version)
 
 	if profile.Demo {
 		fmt.Fprint(os.Stderr, "Demo mode is enabled\n")
@@ -232,7 +232,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err := rootCmd.Execute(); err != nil {
-		slog.Error("memos failed", slog.String("error", err.Error()))
+		slog.Error("kairos failed", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 }

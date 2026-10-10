@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	apiv1 "github.com/usememos/memos/proto/gen/api/v1"
+	apiv1 "github.com/EgoSay/kairos/proto/gen/api/v1"
 )
 
 // The journal's range helper emits CEL timestamp values, not API field names or

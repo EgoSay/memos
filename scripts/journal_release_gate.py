@@ -12,6 +12,10 @@ from journal_cloud_backup import run as backup
 ROOT = pathlib.Path('/var/lib/memos-release')
 CONFIG = pathlib.Path('/etc/memos-backup/config.json')
 CONTAINER = 'memos-journal-ci55cj-memos-1'
+IMAGE_REPOSITORY = 'ghcr.io/egosay/kairos'
+LEGACY_IMAGE_REPOSITORY = 'ghcr.io/egosay/memos-journal'
+# Keep existing snapshots and already published release tags usable during migration.
+PREVIOUS_REPOSITORIES = (IMAGE_REPOSITORY, LEGACY_IMAGE_REPOSITORY)
 
 def command(*args):
     return subprocess.run(args, check=True, capture_output=True, text=True, timeout=60).stdout
@@ -27,7 +31,7 @@ def fingerprint(database):
     return digest.hexdigest()
 
 def validate(release):
-    if set(release) != {'commit', 'digest'} or not re.fullmatch('[a-f0-9]{40}', release['commit']) or (not re.fullmatch('sha256:[a-f0-9]{64}', release['digest'])):
+    if set(release) not in ({'commit', 'digest'}, {'commit', 'digest', 'repository'}) or release.get('repository', LEGACY_IMAGE_REPOSITORY) not in PREVIOUS_REPOSITORIES or not re.fullmatch('[a-f0-9]{40}', release['commit']) or (not re.fullmatch('sha256:[a-f0-9]{64}', release['digest'])):
         raise ValueError('invalid release')
     return release
 
@@ -40,11 +44,13 @@ def wait_for_backup():
 
 def prepare(release):
     validate(release)
+    release = {**release, 'repository': release.get('repository', LEGACY_IMAGE_REPOSITORY)}
     config = json.loads(CONFIG.read_text())
     source = pathlib.Path(config['source'])
     previous = json.loads(command('docker', 'inspect', CONTAINER))[0]
-    image = json.loads(command('docker', 'image', 'inspect', previous['Image']))[0]['RepoDigests'][0]
-    if not image.startswith('ghcr.io/egosay/memos-journal@sha256:'):
+    digests = json.loads(command('docker', 'image', 'inspect', previous['Image']))[0]['RepoDigests']
+    image = next((d for d in digests if any(d.startswith(r + '@sha256:') for r in PREVIOUS_REPOSITORIES)), None)
+    if image is None:
         raise ValueError('unexpected previous image')
     if (ROOT / 'pending.json').exists():
         raise RuntimeError('another release awaits confirmation')
@@ -87,7 +93,7 @@ def wait_for_release(pending):
         try:
             d = json.loads(command('docker', 'inspect', CONTAINER))[0]
             digests = json.loads(command('docker', 'image', 'inspect', d['Image']))[0]['RepoDigests']
-            if 'ghcr.io/egosay/memos-journal@' + pending['digest'] in digests and d['State'].get('Health', {}).get('Status') == 'healthy':
+            if pending.get('repository', LEGACY_IMAGE_REPOSITORY) + '@' + pending['digest'] in digests and d['State'].get('Health', {}).get('Status') == 'healthy':
                 return d
         except subprocess.CalledProcessError:
             pass  # Compose may briefly remove/recreate the named container.

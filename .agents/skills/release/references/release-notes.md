@@ -1,6 +1,6 @@
 # Release Notes
 
-Model new notes on the v0.31.0 release (`gh release view v0.31.0`). Notes are written for people who run Memos, not for
+Write notes from the actual Kairos commit range and linked issues. Notes are written for people who run Kairos, not for
 contributors: describe what changed for them, not how the code changed.
 
 ## Range and Sources
@@ -16,7 +16,7 @@ contributors: describe what changed for them, not how the code changed.
 Stable releases use these sections in this order. Omit an empty section rather than padding it.
 
 1. **Summary paragraph** (no heading): two sentences. Name the most important additions, then the areas that improved
-   overall. Use the release's tag as the version, e.g. "Memos 26.10 adds…".
+   overall. Use the release's tag as the version, e.g. "Kairos 26.10 adds…".
 2. `## Highlights`: new capabilities, ordered writing first, then finding and browsing, then ownership and data.
 3. `## Fixes and polish`: grouped by area (Editor, Markdown, Interface and languages, …).
 4. `## Administration and integrations`: security, deployment, configuration, API, MCP, CLI.
@@ -33,7 +33,7 @@ any apply. Add one line asking testers to report regressions in issues.
 - Highlights and grouped sections use `* **Area:** sentence. (links)`. Group related changes into one bullet per area instead
   of one bullet per PR.
 - Write in present tense from the user's side: "Browse memos by month", not "Added calendar component".
-- Link every bullet to its sources: `[#1234](https://github.com/usememos/memos/pull/1234)` for PRs, and a short descriptive label
+- Link every bullet to its sources: `[#1234](https://github.com/EgoSay/kairos/pull/1234)` for PRs, and a short descriptive label
   linking the full commit URL for direct commits.
 - Use product names as they appear in the app (Spaces, Views, Quick Find). Never call memos posts or messages.
 - Do not mention plans, subscriptions, payments, or vendors.

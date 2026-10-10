@@ -7,9 +7,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	storepb "github.com/usememos/memos/proto/gen/store"
-	"github.com/usememos/memos/store"
-	storedb "github.com/usememos/memos/store/db"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	"github.com/EgoSay/kairos/store"
+	storedb "github.com/EgoSay/kairos/store/db"
 )
 
 type delayedInstanceSettingCreateDriver struct {

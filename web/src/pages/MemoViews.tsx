@@ -486,7 +486,7 @@ const MemoViews = () => {
                 </div>
                 <a
                   className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-                  href="https://www.usememos.com/docs"
+                  href="https://github.com/EgoSay/kairos/blob/main/docs/usage.md"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

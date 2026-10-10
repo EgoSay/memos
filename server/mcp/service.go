@@ -12,9 +12,9 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 
-	"github.com/usememos/memos/internal/profile"
-	memosproto "github.com/usememos/memos/proto"
-	apiv1 "github.com/usememos/memos/server/api/v1"
+	"github.com/EgoSay/kairos/internal/profile"
+	memosproto "github.com/EgoSay/kairos/proto"
+	apiv1 "github.com/EgoSay/kairos/server/api/v1"
 )
 
 // maxMCPRequestBytes caps the /mcp request body. It tracks the API limit because

@@ -3,11 +3,11 @@ package db
 import (
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/internal/profile"
-	"github.com/usememos/memos/store"
-	"github.com/usememos/memos/store/db/mysql"
-	"github.com/usememos/memos/store/db/postgres"
-	"github.com/usememos/memos/store/db/sqlite"
+	"github.com/EgoSay/kairos/internal/profile"
+	"github.com/EgoSay/kairos/store"
+	"github.com/EgoSay/kairos/store/db/mysql"
+	"github.com/EgoSay/kairos/store/db/postgres"
+	"github.com/EgoSay/kairos/store/db/sqlite"
 )
 
 // NewDBDriver creates new db driver based on profile.

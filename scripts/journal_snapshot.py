@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Create a verified directory snapshot of this journal's SQLite and local media.
 
-Uploaded media in Memos has unique, immutable paths. Snapshot the database first,
+Uploaded media in Kairos has unique, immutable paths. Snapshot the database first,
 then retain those exact media versions, including originals used by revisions.
 A concurrent deletion that wins the race makes this attempt fail, never succeed
 with missing media. Retry from a new database snapshot. No application pause or

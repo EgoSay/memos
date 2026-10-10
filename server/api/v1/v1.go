@@ -14,15 +14,15 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/semaphore"
 
-	"github.com/usememos/memos/core/notification"
-	"github.com/usememos/memos/core/partition"
-	"github.com/usememos/memos/internal/linkmeta"
-	"github.com/usememos/memos/internal/profile"
-	"github.com/usememos/memos/internal/ratelimit"
-	"github.com/usememos/memos/markdown"
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	"github.com/usememos/memos/server/auth"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/notification"
+	"github.com/EgoSay/kairos/core/partition"
+	"github.com/EgoSay/kairos/internal/linkmeta"
+	"github.com/EgoSay/kairos/internal/profile"
+	"github.com/EgoSay/kairos/internal/ratelimit"
+	"github.com/EgoSay/kairos/markdown"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	"github.com/EgoSay/kairos/server/auth"
+	"github.com/EgoSay/kairos/store"
 )
 
 // MaxAPIRequestBytes caps the size of a request body accepted by the API. The

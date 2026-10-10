@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
 )
 
 func TestInstanceAdminRetrieval(t *testing.T) {

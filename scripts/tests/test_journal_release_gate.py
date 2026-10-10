@@ -5,7 +5,8 @@ spec=importlib.util.spec_from_file_location('gate',SCRIPTS/'journal_release_gate
 class ReleaseGateTest(unittest.TestCase):
  def test_only_fixed_registry_content_identifiers_are_accepted(self):
   good={'commit':'a'*40,'digest':'sha256:'+'b'*64};self.assertEqual(gate.validate(good),good)
-  for value in ({**good,'commit':'main'}, {**good,'digest':'sha256:abc; echo bad'}, {**good,'command':'anything'}):
+  kairos={**good,'repository':'ghcr.io/egosay/kairos'};self.assertEqual(gate.validate(kairos),kairos)
+  for value in ({**good,'commit':'main'}, {**good,'digest':'sha256:abc; echo bad'}, {**good,'command':'anything'}, {**good,'repository':'ghcr.io/other/kairos'}):
    with self.assertRaises(ValueError):gate.validate(value)
  def test_new_content_or_a_changed_data_shape_blocks_snapshot_replacement(self):
   with tempfile.TemporaryDirectory() as directory:
@@ -43,15 +44,23 @@ class ReleaseReadinessTest(unittest.TestCase):
  def test_http_ready_release_waits_for_docker_health_before_confirmation(self):
   import json
   from unittest.mock import patch
-  release={'digest':'sha256:'+'a'*64}
+  release={'digest':'sha256:'+'a'*64,'repository':'ghcr.io/egosay/kairos'}
   def inspect(*args):
-   if args[:3]==('docker','image','inspect'):return json.dumps([{'RepoDigests':['ghcr.io/egosay/memos-journal@'+release['digest']]}])
+   if args[:3]==('docker','image','inspect'):return json.dumps([{'RepoDigests':['ghcr.io/egosay/kairos@'+release['digest']]}])
    health=states.pop(0)
    return json.dumps([{'Image':'new-image','State':{'Health':{'Status':health}}}])
   states=['starting','healthy']
   with patch.object(gate,'command',side_effect=inspect),patch.object(gate.time,'sleep') as sleep:
    self.assertEqual(gate.wait_for_release(release)['State']['Health']['Status'],'healthy')
   sleep.assert_called_once_with(2)
+
+ def test_already_published_legacy_workflow_keeps_its_exact_registry(self):
+  import json
+  from unittest.mock import patch
+  release={'digest':'sha256:'+'c'*64}
+  replies=[json.dumps([{'Image':'legacy','State':{'Health':{'Status':'healthy'}}}]),json.dumps([{'RepoDigests':['ghcr.io/egosay/memos-journal@'+release['digest']]}])]
+  with patch.object(gate,'command',side_effect=replies):
+   self.assertEqual(gate.wait_for_release(release)['Image'],'legacy')
 
 class RollbackPreservationTest(unittest.TestCase):
  def test_new_content_and_unreadable_schemas_restart_service_without_replacing_data(self):

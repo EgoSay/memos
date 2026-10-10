@@ -3,7 +3,7 @@ package v1
 import (
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/internal/random"
+	"github.com/EgoSay/kairos/internal/random"
 )
 
 const ssoUsernameFallbackAttempts = 5

@@ -10,8 +10,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/usememos/memos/internal/linkmeta"
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
+	"github.com/EgoSay/kairos/internal/linkmeta"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
 )
 
 type fakeLinkMetadataFetcher func(context.Context, string) (*linkmeta.HTMLMeta, error)

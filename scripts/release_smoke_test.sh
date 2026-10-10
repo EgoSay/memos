@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Black-box smoke test for a Memos release image.
+# Black-box smoke test for a Kairos release image.
 #
 # By default, the script builds the current worktree as a local Docker image.
 # Pass --candidate-image to test an image that has already been built.
@@ -18,7 +18,7 @@ usage() {
   cat <<'EOF'
 Usage: ./scripts/release_smoke_test.sh [options]
 
-Runs fresh-install and previous-stable upgrade smoke tests against a Memos
+Runs fresh-install and previous-stable upgrade smoke tests against a Kairos
 Docker image. With no options, the current worktree is built and tested.
 
 Options:
@@ -36,7 +36,7 @@ Environment equivalents:
 Examples:
   ./scripts/release_smoke_test.sh
   ./scripts/release_smoke_test.sh \
-    --candidate-image memos-smoke:local \
+    --candidate-image kairos-smoke:local \
     --previous-image neosmemo/memos:0.31.0
 EOF
 }

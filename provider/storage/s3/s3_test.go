@@ -11,8 +11,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/usememos/memos/internal/testutil/fakes3"
-	storepb "github.com/usememos/memos/proto/gen/store"
+	"github.com/EgoSay/kairos/internal/testutil/fakes3"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
 )
 
 // assertObjectLifecycle exercises the full driver contract — upload, download,
