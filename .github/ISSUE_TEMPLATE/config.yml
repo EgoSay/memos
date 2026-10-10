@@ -1,8 +1,5 @@
-blank_issues_enabled: false
+blank_issues_enabled: true
 contact_links:
-  - name: Questions & Support
-    url: https://github.com/usememos/memos/discussions
-    about: Ask questions or get help in GitHub Discussions — please don't open issues for questions
-  - name: Documentation
-    url: https://www.usememos.com/docs
-    about: Check the documentation before opening an issue
+  - name: 使用与部署
+    url: https://github.com/EgoSay/kairos#readme
+    about: Kairos 的使用、部署与恢复说明

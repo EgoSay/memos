@@ -13,10 +13,10 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/require"
 
-	"github.com/usememos/memos/core/partition"
-	"github.com/usememos/memos/internal/webhook"
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/partition"
+	"github.com/EgoSay/kairos/internal/webhook"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	"github.com/EgoSay/kairos/store"
 )
 
 func TestJournalPartitionHTTPCompleteSaveAndIsolation(t *testing.T) {

@@ -1,29 +1,35 @@
 ---
 name: release
 description: >
-  Release the private journal fork through a CalVer tag: verify the candidate,
-  push an authorized tag, watch Personal Journal Image, and verify the deployed
-  source commit and image digest. Use for an explicitly requested Memos release
+  Release the Kairos private journal through a CalVer tag: verify the candidate,
+  push an authorized tag, watch Kairos Image, and verify the deployed
+  source commit and image digest. Use for an explicitly requested Kairos release
   or release candidate; changing release configuration is not itself a release.
 metadata:
   owner: "EgoSay"
-  version: "2.0.0"
-  last-reviewed: "2026-10-09"
+  version: "2.1.0"
+  last-reviewed: "2026-10-10"
 ---
 
-# Private journal release
+# Kairos release
 
 Pushing a `YY.MM[.N][-rc.N]` tag triggers `.github/workflows/journal-image.yml`.
 The workflow validates the version, runs frontend/backend checks, builds and
-smoke-tests the complete image, publishes to `ghcr.io/egosay/memos-journal`,
+smoke-tests the complete image, publishes to `ghcr.io/egosay/kairos`,
 verifies the pre-upgrade snapshot/R2 backup, and updates the pinned
 `production/memos-journal` declaration for Dokploy. It confirms the public
 source identity and server image health before completing the deployment.
 
 The upstream Canary, Release, Render demo and stale-item workflows are retired.
 Do not invoke `release.yml`, publish to `neosmemo/memos` or
-`ghcr.io/usememos/memos`, or claim this fork builds upstream binary archives.
+`ghcr.io/usememos/memos`, or claim Kairos builds upstream binary archives.
 The journal workflow does not create a GitHub Release page.
+Before the first Kairos release, verify that Dokploy uses `EgoSay/kairos`
+and the deployed `journal_release_gate.py` expects the Kairos registry.
+Keep the existing composeId, appName, production branch, volumes, and data paths.
+Already published tags retain legacy request compatibility. New Kairos requests
+include the repository and must confirm the exact requested repository and digest.
+Both approved repositories remain usable as previous images for rollback.
 
 ## Candidate and authorization
 
@@ -62,7 +68,7 @@ The journal workflow does not create a GitHub Release page.
    commit for both tag types and embeds the tag as the application version.
 
 ```bash
-git tag -a VERSION REVIEWED_COMMIT -m "Journal VERSION"
+git tag -a VERSION REVIEWED_COMMIT -m "Kairos VERSION"
 git push origin refs/tags/VERSION
 ```
 

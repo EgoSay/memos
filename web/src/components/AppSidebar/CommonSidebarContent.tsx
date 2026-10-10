@@ -1,7 +1,7 @@
 import { BookOpenIcon, BracesIcon, ExternalLinkIcon, GitForkIcon, InfoIcon, type LucideIcon } from "lucide-react";
 import { Link, matchPath, useLocation } from "react-router-dom";
 import { useAppSidebar } from "@/contexts/AppSidebarContext";
-import { MEMOS_API_DOCUMENTATION_URL, MEMOS_DOCUMENTATION_URL, MEMOS_GITHUB_URL } from "@/lib/constants";
+import { KAIROS_API_DOCUMENTATION_URL, KAIROS_DOCUMENTATION_URL, KAIROS_GITHUB_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/router/routes";
 import { useTranslate } from "@/utils/i18n";
@@ -15,9 +15,9 @@ interface ResourceLink {
 }
 
 const RESOURCE_LINKS: ResourceLink[] = [
-  { labelKey: "about.documents", href: MEMOS_DOCUMENTATION_URL, icon: BookOpenIcon },
-  { labelKey: "about.api-docs", href: MEMOS_API_DOCUMENTATION_URL, icon: BracesIcon },
-  { labelKey: "about.github-repository", href: MEMOS_GITHUB_URL, icon: GitForkIcon },
+  { labelKey: "about.documents", href: KAIROS_DOCUMENTATION_URL, icon: BookOpenIcon },
+  { labelKey: "about.api-docs", href: KAIROS_API_DOCUMENTATION_URL, icon: BracesIcon },
+  { labelKey: "about.github-repository", href: KAIROS_GITHUB_URL, icon: GitForkIcon },
 ];
 
 const CommonSidebarContent = () => {

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
 )
 
 func TestListMemoViews(t *testing.T) {

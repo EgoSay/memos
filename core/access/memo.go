@@ -2,7 +2,7 @@
 // shared by the server's API and HTTP adapters.
 package access
 
-import "github.com/usememos/memos/store"
+import "github.com/EgoSay/kairos/store"
 
 // MemoReadDenial describes why a memo read was rejected.
 type MemoReadDenial int

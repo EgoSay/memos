@@ -13,7 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/provider/ai"
+	"github.com/EgoSay/kairos/provider/ai"
 )
 
 // Source is the complete, intentionally selected input sent to the model.

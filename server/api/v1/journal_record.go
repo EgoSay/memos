@@ -19,12 +19,12 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
-	"github.com/usememos/memos/core/journal"
-	"github.com/usememos/memos/core/journalrecord"
-	"github.com/usememos/memos/internal/random"
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	"github.com/usememos/memos/server/auth"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/journal"
+	"github.com/EgoSay/kairos/core/journalrecord"
+	"github.com/EgoSay/kairos/internal/random"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	"github.com/EgoSay/kairos/server/auth"
+	"github.com/EgoSay/kairos/store"
 )
 
 func (s *APIV1Service) registerJournalRecordRoutes(group *echo.Group) {

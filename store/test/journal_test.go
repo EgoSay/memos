@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 func TestJournalDocumentsOwnerIsolationAndConcurrentCAS(t *testing.T) {

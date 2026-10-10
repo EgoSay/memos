@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 // rowQuerier is satisfied by both *sql.DB and *sql.Tx so the insert statements

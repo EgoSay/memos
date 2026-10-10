@@ -3,8 +3,8 @@ package v1
 import (
 	"fmt"
 
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	storepb "github.com/usememos/memos/proto/gen/store"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
 )
 
 func convertInstanceSettingFromStore(setting *storepb.InstanceSetting) *v1pb.InstanceSetting {

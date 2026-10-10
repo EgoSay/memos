@@ -9,10 +9,10 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/usememos/memos/core/access"
-	"github.com/usememos/memos/internal/ratelimit"
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/access"
+	"github.com/EgoSay/kairos/internal/ratelimit"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	"github.com/EgoSay/kairos/store"
 )
 
 func (s *APIV1Service) ListMemoReactions(ctx context.Context, request *v1pb.ListMemoReactionsRequest) (*v1pb.ListMemoReactionsResponse, error) {

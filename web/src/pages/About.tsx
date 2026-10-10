@@ -1,20 +1,20 @@
-import { BookOpenIcon, CodeXmlIcon, ExternalLinkIcon, GitForkIcon, GlobeIcon, HeartIcon, ScissorsIcon } from "lucide-react";
+import { BookOpenIcon, CodeXmlIcon, ExternalLinkIcon, GitForkIcon, GlobeIcon, MessageSquareIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useInstance } from "@/contexts/InstanceContext";
 import {
-  MEMOS_API_DOCUMENTATION_URL,
-  MEMOS_DOCUMENTATION_URL,
-  MEMOS_GITHUB_URL,
-  MEMOS_WEBSITE_URL,
-  WEB_CLIPPER_URL,
+  KAIROS_API_DOCUMENTATION_URL,
+  KAIROS_DOCUMENTATION_URL,
+  KAIROS_FEEDBACK_URL,
+  KAIROS_GITHUB_URL,
+  KAIROS_WEBSITE_URL,
 } from "@/lib/constants";
 import { getReleaseTag } from "@/lib/release-version";
 import { useTranslate } from "@/utils/i18n";
 
-const GITHUB_COMMIT_URL_PREFIX = "https://github.com/usememos/memos/commit/";
-const GITHUB_RELEASE_URL_PREFIX = "https://github.com/usememos/memos/releases/tag/";
+const GITHUB_COMMIT_URL_PREFIX = `${KAIROS_GITHUB_URL}/commit/`;
+const GITHUB_RELEASE_URL_PREFIX = `${KAIROS_GITHUB_URL}/tree/`;
 
-const DEFAULT_TITLE = "Memos";
+const DEFAULT_TITLE = "Kairos";
 const DEFAULT_LOGO = "/logo.webp";
 
 const isCommitSha = (commit: string) => /^[0-9a-f]{7,40}$/i.test(commit);
@@ -68,17 +68,16 @@ const About = () => {
   }
 
   const projectLinks = [
-    { label: t("about.official-website"), note: t("about.official-website-note"), href: MEMOS_WEBSITE_URL, icon: GlobeIcon },
-    { label: t("about.documents"), note: t("about.documents-note"), href: MEMOS_DOCUMENTATION_URL, icon: BookOpenIcon },
-    { label: t("about.api-docs"), note: t("about.api-docs-note"), href: MEMOS_API_DOCUMENTATION_URL, icon: CodeXmlIcon },
+    { label: t("about.official-website"), note: t("about.official-website-note"), href: KAIROS_WEBSITE_URL, icon: GlobeIcon },
+    { label: t("about.documents"), note: t("about.documents-note"), href: KAIROS_DOCUMENTATION_URL, icon: BookOpenIcon },
+    { label: t("about.api-docs"), note: t("about.api-docs-note"), href: KAIROS_API_DOCUMENTATION_URL, icon: CodeXmlIcon },
     {
       label: t("about.github-repository"),
       note: t("about.github-repository-note"),
-      href: MEMOS_GITHUB_URL,
+      href: KAIROS_GITHUB_URL,
       icon: GitForkIcon,
     },
-    { label: t("about.web-clipper"), note: t("about.web-clipper-platforms"), href: WEB_CLIPPER_URL, icon: ScissorsIcon },
-    { label: t("about.sponsor"), note: t("about.sponsor-note"), href: "https://github.com/sponsors/usememos", icon: HeartIcon },
+    { label: t("about.feedback"), note: t("about.feedback-note"), href: KAIROS_FEEDBACK_URL, icon: MessageSquareIcon },
   ];
 
   return (
@@ -107,11 +106,7 @@ const About = () => {
               </div>
             </div>
             <p className="mt-8 text-4xl leading-[1.15] tracking-tight wrap-anywhere text-foreground @min-[60rem]:text-[3.25rem]">
-              {customProfile?.description || (
-                <>
-                  <span className="block">Your thoughts, your data,</span> <span className="block">shared on your terms.</span>
-                </>
-              )}
+              {customProfile?.description || t("about.tagline")}
             </p>
             <p className="mt-6 max-w-md text-base leading-relaxed text-muted-foreground @min-[60rem]:text-lg">{t("about.description")}</p>
 

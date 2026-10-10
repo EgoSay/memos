@@ -11,11 +11,11 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/usememos/memos/internal/ratelimit"
-	"github.com/usememos/memos/internal/webhook"
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/internal/ratelimit"
+	"github.com/EgoSay/kairos/internal/webhook"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 func (s *APIV1Service) ListUserWebhooks(ctx context.Context, request *v1pb.ListUserWebhooksRequest) (*v1pb.ListUserWebhooksResponse, error) {

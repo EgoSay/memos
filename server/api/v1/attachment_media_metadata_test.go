@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
 )
 
 func TestValidateClientMediaMetadata(t *testing.T) {

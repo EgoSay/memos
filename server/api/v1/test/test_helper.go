@@ -5,13 +5,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/usememos/memos/internal/profile"
-	"github.com/usememos/memos/markdown"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	apiv1 "github.com/usememos/memos/server/api/v1"
-	"github.com/usememos/memos/server/auth"
-	"github.com/usememos/memos/store"
-	teststore "github.com/usememos/memos/store/test"
+	"github.com/EgoSay/kairos/internal/profile"
+	"github.com/EgoSay/kairos/markdown"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	apiv1 "github.com/EgoSay/kairos/server/api/v1"
+	"github.com/EgoSay/kairos/server/auth"
+	"github.com/EgoSay/kairos/store"
+	teststore "github.com/EgoSay/kairos/store/test"
 )
 
 // TestService holds the test service setup for API v1 services.

@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/usememos/memos/core/journal"
-	"github.com/usememos/memos/core/journalbackup"
-	"github.com/usememos/memos/core/partition"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/journal"
+	"github.com/EgoSay/kairos/core/journalbackup"
+	"github.com/EgoSay/kairos/core/partition"
+	"github.com/EgoSay/kairos/store"
 )
 
 type backupSequence struct {

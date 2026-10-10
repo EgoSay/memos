@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
 
-	"github.com/usememos/memos/internal/profile"
+	"github.com/EgoSay/kairos/internal/profile"
 )
 
 func newCORSMiddleware(profile *profile.Profile) echo.MiddlewareFunc {

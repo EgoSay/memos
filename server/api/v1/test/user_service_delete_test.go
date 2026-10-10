@@ -13,10 +13,10 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	apiv1 "github.com/usememos/memos/server/api/v1"
-	"github.com/usememos/memos/store"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	apiv1 "github.com/EgoSay/kairos/server/api/v1"
+	"github.com/EgoSay/kairos/store"
 )
 
 func TestDeleteUserSelfDeleteCleansAccountDataAndAuthCookies(t *testing.T) {

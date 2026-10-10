@@ -1,8 +1,8 @@
 package v1
 
 import (
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	storepb "github.com/usememos/memos/proto/gen/store"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
 )
 
 func convertMemoViewIconFromStore(icon *storepb.MemoViewsUserSetting_MemoView_Icon) *v1pb.MemoView_Icon {

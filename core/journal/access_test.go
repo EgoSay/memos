@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/usememos/memos/core/journal"
-	"github.com/usememos/memos/store"
-	storetest "github.com/usememos/memos/store/test"
+	"github.com/EgoSay/kairos/core/journal"
+	"github.com/EgoSay/kairos/store"
+	storetest "github.com/EgoSay/kairos/store/test"
 )
 
 func TestJournalReadRejectsFormerSpaceMemberAndKeepsPrivateOriginals(t *testing.T) {

@@ -4,7 +4,7 @@ import About from "@/pages/About";
 
 const mockInstance = {
   profile: {
-    version: "0.25.0",
+    version: "26.10.1",
     commit: "0123456789abcdef0123456789abcdef01234567",
     instanceUrl: "",
     demo: false,
@@ -22,8 +22,9 @@ vi.mock("@/utils/i18n", () => ({
     (
       ({
         "common.version": "Version",
-        "about.powered-by": "Powered by Memos",
-        "about.sponsor": "Sponsor Memos",
+        "about.powered-by": "Powered by Kairos",
+        "about.feedback": "Share feedback",
+        "about.tagline": "Keep a moment. Meet yourself again.",
       }) as Record<string, string>
     )[key] ?? key,
 }));
@@ -33,7 +34,7 @@ const renderAbout = () => render(<About />);
 describe("<About>", () => {
   beforeEach(() => {
     mockInstance.profile = {
-      version: "0.25.0",
+      version: "26.10.1",
       commit: "0123456789abcdef0123456789abcdef01234567",
       instanceUrl: "https://notes.example.com",
       demo: false,
@@ -49,31 +50,39 @@ describe("<About>", () => {
   it("renders the identity hero with linked version and commit chips", () => {
     renderAbout();
 
-    expect(screen.getByRole("heading", { name: "Memos" })).toBeInTheDocument();
-    expect(screen.getByText(/Your thoughts, your data/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Kairos" })).toBeInTheDocument();
+    expect(screen.getByText(/Keep a moment. Meet yourself again./i)).toBeInTheDocument();
     expect(screen.getByText("about.description")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Version\s*v0\.25\.0/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Version\s*26\.10\.1/ })).toHaveAttribute(
       "href",
-      "https://github.com/usememos/memos/releases/tag/v0.25.0",
+      "https://github.com/EgoSay/kairos/tree/26.10.1",
     );
-    expect(screen.getByRole("heading", { name: "Memos" }).parentElement).toContainElement(
-      screen.getByRole("link", { name: /Version\s*v0\.25\.0/ }),
+    expect(screen.getByRole("heading", { name: "Kairos" }).parentElement).toContainElement(
+      screen.getByRole("link", { name: /Version\s*26\.10\.1/ }),
     );
     expect(screen.getByRole("link", { name: "0123456" })).toHaveAttribute(
       "href",
-      "https://github.com/usememos/memos/commit/0123456789abcdef0123456789abcdef01234567",
+      "https://github.com/EgoSay/kairos/commit/0123456789abcdef0123456789abcdef01234567",
     );
     expect(screen.queryByRole("link", { name: "MIT" })).not.toBeInTheDocument();
   });
 
-  it("links to the project homepage, docs, API docs, GitHub, and Web Clipper", () => {
+  it("links to the project homepage, docs, API docs, GitHub, and feedback", () => {
     renderAbout();
 
-    expect(screen.getByRole("link", { name: /about\.official-website/ })).toHaveAttribute("href", "https://usememos.com/");
-    expect(screen.getByRole("link", { name: /about\.documents/ })).toHaveAttribute("href", "https://usememos.com/docs");
-    expect(screen.getByRole("link", { name: /about\.api-docs/ })).toHaveAttribute("href", "https://usememos.com/docs/api");
-    expect(screen.getByRole("link", { name: /about\.web-clipper/ })).toHaveAttribute("href", "https://github.com/usememos/web-clipper");
-    expect(screen.getByRole("link", { name: /about\.github-repository/ })).toHaveAttribute("href", "https://github.com/usememos/memos");
+    expect(screen.getByRole("link", { name: /about\.official-website/ })).toHaveAttribute(
+      "href",
+      "https://github.com/EgoSay/kairos#readme",
+    );
+    expect(screen.getByRole("link", { name: /about\.documents/ })).toHaveAttribute(
+      "href",
+      "https://github.com/EgoSay/kairos/blob/main/docs/usage.md",
+    );
+    expect(screen.getByRole("link", { name: /about\.api-docs/ })).toHaveAttribute(
+      "href",
+      "https://github.com/EgoSay/kairos/blob/main/docs/api.md",
+    );
+    expect(screen.getByRole("link", { name: /about\.github-repository/ })).toHaveAttribute("href", "https://github.com/EgoSay/kairos");
   });
 
   it("does not surface the instance URL, administrator, or birds", () => {
@@ -86,19 +95,19 @@ describe("<About>", () => {
     expect(screen.queryByTestId("about-bird-sprite")).not.toBeInTheDocument();
   });
 
-  it("offers a single sponsorship link to the Memos project, including on custom instances", () => {
+  it("offers a single feedback link to the Kairos project, including on custom instances", () => {
     mockInstance.generalSetting = {
       customProfile: { title: "Team Notes", description: "Our shared scratchpad.", logoUrl: "/custom-logo.png" },
     };
 
     renderAbout();
 
-    const links = screen.getAllByRole("link", { name: /Sponsor Memos/ });
+    const links = screen.getAllByRole("link", { name: /Share feedback/ });
     expect(links).toHaveLength(1);
-    expect(within(screen.getByRole("navigation", { name: "about.project-links" })).getByRole("link", { name: /Sponsor Memos/ })).toBe(
+    expect(within(screen.getByRole("navigation", { name: "about.project-links" })).getByRole("link", { name: /Share feedback/ })).toBe(
       links[0],
     );
-    expect(links[0]).toHaveAttribute("href", "https://github.com/sponsors/usememos");
+    expect(links[0]).toHaveAttribute("href", "https://github.com/EgoSay/kairos/issues");
     expect(links[0]).toHaveAttribute("target", "_blank");
     expect(links[0]).toHaveAttribute("rel", "noreferrer");
   });
@@ -123,7 +132,7 @@ describe("<About>", () => {
     expect(screen.getByText("about.demo")).toBeInTheDocument();
   });
 
-  it("uses custom branding for the identity hero and credits Memos", () => {
+  it("uses custom branding for the identity hero and credits Kairos", () => {
     mockInstance.generalSetting = {
       customProfile: { title: "Team Notes", description: "Our shared scratchpad.", logoUrl: "/custom-logo.png" },
     };
@@ -132,9 +141,9 @@ describe("<About>", () => {
 
     expect(screen.getByRole("heading", { name: "Team Notes" })).toBeInTheDocument();
     expect(screen.getByText("Our shared scratchpad.")).toBeInTheDocument();
-    expect(screen.queryByText(/Your thoughts, your data/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Keep a moment. Meet yourself again./i)).not.toBeInTheDocument();
     expect(document.querySelector("img")).toHaveAttribute("src", "/custom-logo.png");
-    expect(screen.getByText("Powered by Memos")).toBeInTheDocument();
+    expect(screen.getByText("Powered by Kairos")).toBeInTheDocument();
   });
 
   it("renders as a page without nested mobile padding", () => {

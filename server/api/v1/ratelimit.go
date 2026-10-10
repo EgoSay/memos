@@ -15,10 +15,10 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/durationpb"
 
-	"github.com/usememos/memos/internal/clientip"
-	"github.com/usememos/memos/internal/identifier"
-	"github.com/usememos/memos/internal/ratelimit"
-	"github.com/usememos/memos/server/auth"
+	"github.com/EgoSay/kairos/internal/clientip"
+	"github.com/EgoSay/kairos/internal/identifier"
+	"github.com/EgoSay/kairos/internal/ratelimit"
+	"github.com/EgoSay/kairos/server/auth"
 )
 
 const (

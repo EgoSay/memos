@@ -2,8 +2,8 @@
 
 set -eu
 
-REPO="${REPO:-usememos/memos}"
-BIN_NAME="memos"
+REPO="${REPO:-EgoSay/kairos}"
+BIN_NAME="kairos"
 VERSION="${MEMOS_VERSION:-}"
 INSTALL_DIR="${MEMOS_INSTALL_DIR:-}"
 SKIP_CHECKSUM="${MEMOS_SKIP_CHECKSUM:-0}"
@@ -11,7 +11,11 @@ QUIET="${MEMOS_INSTALL_QUIET:-0}"
 
 usage() {
   cat <<'EOF'
-Install Memos from GitHub Releases.
+Install a Kairos binary archive from a GitHub Release.
+
+Kairos currently publishes container images, not binary release archives.
+For supported installation, see docs/operations/deployment.md. This utility
+is retained for repositories that provide compatible Kairos archives.
 
 Usage:
   install.sh [--version <version>] [--install-dir <dir>] [--repo <owner/name>] [--skip-checksum]
@@ -21,11 +25,11 @@ Environment:
   MEMOS_INSTALL_DIR     Directory to install the binary into.
   MEMOS_SKIP_CHECKSUM   Set to 1 to skip checksum verification.
   MEMOS_INSTALL_QUIET   Set to 1 to reduce log output.
-  REPO                  GitHub repository in owner/name form. Defaults to usememos/memos.
+  REPO                  GitHub repository in owner/name form. Defaults to EgoSay/kairos.
 
 Examples:
-  curl -fsSL https://raw.githubusercontent.com/usememos/memos/main/scripts/install.sh | sh
-  curl -fsSL https://raw.githubusercontent.com/usememos/memos/main/scripts/install.sh | sh -s -- --version 26.09
+  curl -fsSL https://raw.githubusercontent.com/EgoSay/kairos/main/scripts/install.sh | sh
+  curl -fsSL https://raw.githubusercontent.com/EgoSay/kairos/main/scripts/install.sh | sh -s -- --version 26.09
 EOF
 }
 

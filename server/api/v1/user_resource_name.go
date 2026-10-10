@@ -5,8 +5,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/internal/identifier"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/internal/identifier"
+	"github.com/EgoSay/kairos/store"
 )
 
 // BuildUserName returns the canonical public resource name for a user.

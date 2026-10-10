@@ -7,7 +7,7 @@ import (
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
 )
 
 // This file contains all Connect service handler method implementations.

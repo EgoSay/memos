@@ -3,7 +3,7 @@ package access
 import (
 	"context"
 
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 // MemoReadStore is the store subset needed to resolve a memo read context.

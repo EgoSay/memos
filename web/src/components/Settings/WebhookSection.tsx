@@ -68,7 +68,7 @@ const WebhookSection = () => {
       title={
         <div className="flex items-center gap-2">
           <span>{t("setting.webhook.title")}</span>
-          <LearnMore url="https://usememos.com/docs/integrations/webhooks" />
+          <LearnMore url="https://github.com/EgoSay/kairos/blob/main/docs/usage.md#分区与外发" />
         </div>
       }
       actions={

@@ -20,11 +20,11 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/usememos/memos/core/access"
-	"github.com/usememos/memos/core/partition"
-	"github.com/usememos/memos/internal/webhook"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/access"
+	"github.com/EgoSay/kairos/core/partition"
+	"github.com/EgoSay/kairos/internal/webhook"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 func (s *APIV1Service) registerJournalPartitionRoutes(group *echo.Group) {

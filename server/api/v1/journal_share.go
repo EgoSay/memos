@@ -15,9 +15,9 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/usememos/memos/core/journal"
-	"github.com/usememos/memos/internal/ratelimit"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/journal"
+	"github.com/EgoSay/kairos/internal/ratelimit"
+	"github.com/EgoSay/kairos/store"
 )
 
 type journalShareRequest struct {

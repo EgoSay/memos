@@ -13,9 +13,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/usememos/memos/core/journal"
-	"github.com/usememos/memos/server/auth"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/journal"
+	"github.com/EgoSay/kairos/server/auth"
+	"github.com/EgoSay/kairos/store"
 )
 
 // registerJournalRoutes reuses the existing session/PAT authorizer for private JSON routes.

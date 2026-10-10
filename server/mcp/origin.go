@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/usememos/memos/internal/profile"
+	"github.com/EgoSay/kairos/internal/profile"
 )
 
 func isAllowedMCPOrigin(host string, origin string, profile *profile.Profile) bool {

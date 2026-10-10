@@ -13,11 +13,11 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
-	"github.com/usememos/memos/internal/testutil"
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	apiv1 "github.com/usememos/memos/server/api/v1"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/internal/testutil"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	apiv1 "github.com/EgoSay/kairos/server/api/v1"
+	"github.com/EgoSay/kairos/store"
 )
 
 func TestCreateAttachment(t *testing.T) {

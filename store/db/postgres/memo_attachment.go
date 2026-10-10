@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 // ApplyMemoMutation atomically updates a memo, attachment bindings, and reference relations.

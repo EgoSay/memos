@@ -1,4 +1,4 @@
-// Package email provides SMTP email sending functionality for self-hosted Memos instances.
+// Package email provides SMTP email sending functionality for self-hosted Kairos instances.
 //
 // This package is designed for self-hosted environments where instance administrators
 // configure their own SMTP servers. It follows industry-standard patterns used by

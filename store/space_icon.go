@@ -3,7 +3,7 @@ package store
 import (
 	"github.com/pkg/errors"
 
-	storepb "github.com/usememos/memos/proto/gen/store"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
 )
 
 // ValidateSpaceIcon validates display metadata without depending on a client's

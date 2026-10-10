@@ -14,14 +14,14 @@ import (
 	"github.com/labstack/echo/v5/middleware"
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/internal/clientip"
-	"github.com/usememos/memos/internal/profile"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	apiv1 "github.com/usememos/memos/server/api/v1"
-	"github.com/usememos/memos/server/fileserver"
-	"github.com/usememos/memos/server/frontend"
-	"github.com/usememos/memos/server/mcp"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/internal/clientip"
+	"github.com/EgoSay/kairos/internal/profile"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	apiv1 "github.com/EgoSay/kairos/server/api/v1"
+	"github.com/EgoSay/kairos/server/fileserver"
+	"github.com/EgoSay/kairos/server/frontend"
+	"github.com/EgoSay/kairos/server/mcp"
+	"github.com/EgoSay/kairos/store"
 )
 
 const (

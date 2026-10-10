@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 // DeleteSpace hard-deletes only memos directly placed in the Space. Relations

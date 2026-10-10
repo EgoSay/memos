@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/usememos/memos/internal/version"
+	"github.com/EgoSay/kairos/internal/version"
 )
 
 func TestDevelopmentVersion(t *testing.T) {
@@ -113,7 +113,13 @@ func TestPreviousReleaseImage(t *testing.T) {
 		require.Equal(t, want+"\n", string(out))
 		out, err = exec.Command("bash", "release_version.sh", "previous-image", repo).CombinedOutput()
 		require.NoError(t, err, string(out))
-		require.Equal(t, "neosmemo/memos:"+strings.TrimPrefix(want, "v")+"\n", string(out))
+		image := "ghcr.io/egosay/kairos:" + want
+		if strings.HasPrefix(want, "v0.31.") {
+			image = "neosmemo/memos:" + strings.TrimPrefix(want, "v")
+		} else if want == "26.10.1" {
+			image = "ghcr.io/egosay/memos-journal:" + want
+		}
+		require.Equal(t, image+"\n", string(out))
 	}
 	runGit("init", "-b", "main")
 	runGit("commit", "--allow-empty", "-m", "old")
@@ -140,9 +146,12 @@ func TestPreviousReleaseImage(t *testing.T) {
 	runGit("checkout", "main")
 	check("26.09.10")
 	runGit("tag", "26.10")
+	runGit("commit", "--allow-empty", "-m", "pre-Kairos release")
+	runGit("tag", "26.10.1")
+	check("26.10")
 	runGit("commit", "--allow-empty", "-m", "next year")
 	runGit("tag", "27.01")
-	check("26.10")
+	check("26.10.1")
 	// The floor excludes pre-baseline tags even if no supported release exists.
 	repo = t.TempDir()
 	runGit("init", "-b", "main")

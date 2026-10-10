@@ -32,7 +32,7 @@ type Profile struct {
 	Version string
 	// Commit is the current build commit of server
 	Commit string
-	// InstanceURL is the canonical external URL of the Memos instance.
+	// InstanceURL is the canonical external URL of the Kairos instance.
 	InstanceURL string
 	// RateLimit enables the request rate limiter. Off restores unbounded behavior.
 	RateLimit bool

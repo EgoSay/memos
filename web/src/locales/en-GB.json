@@ -8,18 +8,17 @@
     "build": "Build",
     "commit": "Commit",
     "demo": "Demo",
-    "description": "Memos is a timeline for your notes, and it belongs to you. Write in Markdown, post in seconds, and choose who sees each memo: just you, the people you invite, or anyone with the link.",
+    "description": "Kairos is a timeline for your notes, and it belongs to you. Write in Markdown, post in seconds, and choose who sees each memo: just you, the people you invite, or anyone with the link.",
     "distribution": "Distribution",
-    "documents-note": "Deploy, configure, and use Memos",
+    "documents-note": "Deploy, configure, and use Kairos",
     "github-repository-note": "Source, issues, and releases",
     "official-website-note": "The project homepage",
-    "powered-by": "Powered by Memos",
+    "powered-by": "Powered by Kairos",
     "project": "Project",
     "project-links": "Project links",
-    "sponsor": "Sponsor Memos",
-    "sponsor-note": "Support the project on GitHub",
-    "web-clipper": "Web Clipper",
-    "web-clipper-platforms": "Chrome + Firefox"
+    "tagline": "Keep a moment. Meet yourself again.",
+    "feedback": "Issues and ideas",
+    "feedback-note": "Help shape Kairos at your own pace"
   },
   "auth": {
     "create-your-account": "Create your account",
@@ -138,7 +137,7 @@
     "previous-month": "Previous month",
     "resize-panel": "Resize panel",
     "resize-sidebar": "Resize sidebar",
-    "sign-in-to-memos": "Sign in to Memos",
+    "sign-in-to-memos": "Sign in to Kairos",
     "view-all": "View all"
   },
   "locale-picker": {
@@ -364,7 +363,7 @@
       "title": "Access Tokens",
       "token": "Token",
       "create-first": "Create your first token",
-      "about-description": "A personal access token (PAT) is a secret key that authenticates API requests as your account. Any app or script holding one — an MCP server, a CLI, a mobile client — can do everything you can do in Memos, until the token expires or you delete it. Send it as a Bearer credential in the Authorization header:",
+      "about-description": "A personal access token (PAT) is a secret key that authenticates API requests as your account. Any app or script holding one — an MCP server, a CLI, a mobile client — can do everything you can do in Kairos, until the token expires or you delete it. Send it as a Bearer credential in the Authorization header:",
       "empty-description": "A token lets a script or app call the API as you. It is shown once at creation, then listed here so you can revoke it.",
       "empty-title": "No access tokens yet",
       "expires": "Expires",
@@ -376,8 +375,7 @@
       "label": "Access Tokens",
       "last-used": "Last used",
       "never-used": "Never used",
-      "no-expiration": "No expiration",
-      "web-clipper-title": "Use a token with Memos Web Clipper"
+      "no-expiration": "No expiration"
     },
     "account": {
       "change-password": "Change password",
@@ -644,17 +642,17 @@
       "add-provider": "Add provider",
       "api-key": "API key",
       "api-key-required": "API key is required.",
-      "byok-description": "Connect OpenAI or Gemini with an API key from your own account. Memos calls the provider directly from this server.",
-      "byok-key-note": "Use a key from your provider account; Memos does not bundle shared AI credentials.",
+      "byok-description": "Connect OpenAI or Gemini with an API key from your own account. Kairos calls the provider directly from this server.",
+      "byok-key-note": "Use a key from your provider account; Kairos does not bundle shared AI credentials.",
       "byok-label": "BYOK",
-      "byok-model-note": "Memos selects supported models for features like audio transcription.",
+      "byok-model-note": "Kairos selects supported models for features like audio transcription.",
       "byok-storage-note": "Keys stay on this instance and are masked when settings are loaded.",
       "byok-title": "Use your own AI account",
       "configured": "Configured",
       "current-key": "Current key: {{key}}",
       "default-endpoint": "Default endpoint",
       "delete-provider": "Delete AI provider `{{title}}`?",
-      "dialog-description": "Add a key from your own provider account. Memos uses built-in models for each provider; leave the API key blank while editing to keep the stored key.",
+      "dialog-description": "Add a key from your own provider account. Kairos uses built-in models for each provider; leave the API key blank while editing to keep the stored key.",
       "edit-provider": "Edit provider",
       "endpoint": "Endpoint",
       "endpoint-hint": "Leave empty to use the official provider endpoint.",
@@ -737,7 +735,7 @@
       "load-error": "Failed to load statistics"
     },
     "memo-export": {
-      "description": "Move your memos and attachments between Memos instances with a single ZIP file.",
+      "description": "Move your memos and attachments between Kairos instances with a single ZIP file.",
       "export-action": "Export memos",
       "export-description": "Download every memo you created, including comments, archived memos, and attachment files, in Memos Export Format.",
       "export-detail": "A ZIP file with one Markdown file and one JSON record per memo.",
@@ -749,8 +747,8 @@
       "import-action": "Choose file",
       "import-another": "Import another file",
       "import-confirm": "Import {{count}} memos",
-      "import-description": "Import a Memos export file from this or another Memos instance. Memos keep their identifiers, so importing the same file twice does not create duplicates.",
-      "import-detail": "Select a ZIP file exported by Memos.",
+      "import-description": "Import a Kairos export file from this or another Kairos instance. Kairos keep their identifiers, so importing the same file twice does not create duplicates.",
+      "import-detail": "Select a ZIP file exported by Kairos.",
       "import-failed": "Import failed.",
       "import-label": "Upload file",
       "import-success": "Imported {{created}} new and updated {{updated}} memos.",
@@ -773,13 +771,13 @@
       "review-existing": "Already in your account",
       "review-exported": "Exported by",
       "review-file": "File",
-      "review-memos": "Memos in file",
+      "review-memos": "Kairos in file",
       "review-new": "Will be created"
     },
     "spaces": {
       "accept": "Accept",
       "accept-success": "Invitation accepted. {{space}} is now in Your spaces.",
-      "active-user": "Active Memos user",
+      "active-user": "Active Kairos user",
       "admin-role-description": "Can edit this space, invite users, and manage members.",
       "already-invited": "Invitation already pending",
       "already-member": "Already a member",
@@ -802,7 +800,7 @@
       "general": "General",
       "invitation-pending": "Invitation pending",
       "invitations": "Invitations",
-      "invite-description": "Invite an existing Memos user. They must accept before joining the space.",
+      "invite-description": "Invite an existing Kairos user. They must accept before joining the space.",
       "invite-member": "Invite member",
       "invite-success": "Invitation sent to @{{username}}.",
       "invite-to": "Invite to {{space}}",
@@ -826,7 +824,7 @@
       "members-count": "{{count}} members",
       "members-description": "People who can view and contribute to this space.",
       "members-load-error": "Failed to load members.",
-      "memos-user": "Memos user",
+      "memos-user": "Kairos user",
       "no-description": "No description yet.",
       "no-pending-invitations": "No pending invitations.",
       "no-spaces": "No spaces yet",
@@ -851,7 +849,7 @@
       "spaces-count": "{{count}} spaces",
       "title": "Spaces",
       "untitled": "Untitled space",
-      "user-not-found": "No active Memos user found for @{{username}}.",
+      "user-not-found": "No active Kairos user found for @{{username}}.",
       "user-role-description": "Can view and contribute to this space.",
       "you": "You",
       "your-access": "Your access",
@@ -864,8 +862,8 @@
   },
   "demo": {
     "banner-description": "Feel free to explore! This demo is reset periodically.",
-    "banner-title": "Memos demo",
-    "deploy-link": "Deploy your own Memos"
+    "banner-title": "Kairos demo",
+    "deploy-link": "Deploy your own Kairos"
   },
   "attachment-library": {
     "actions": {
@@ -988,7 +986,7 @@
       "use-emoji": "Use {{emoji}}"
     },
     "unavailable": "This space does not exist or you don’t have access to it.",
-    "back-to-memos": "Back to Memos",
+    "back-to-memos": "Back to Kairos",
     "create": "Create space",
     "create-description": "Create a shared place for memos and members.",
     "create-success": "Space created",

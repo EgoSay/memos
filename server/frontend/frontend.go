@@ -13,8 +13,8 @@ import (
 	"github.com/labstack/echo/v5/middleware"
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/internal/profile"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/internal/profile"
+	"github.com/EgoSay/kairos/store"
 )
 
 //go:embed dist/*

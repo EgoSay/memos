@@ -5,8 +5,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/usememos/memos/internal/identifier"
-	storepb "github.com/usememos/memos/proto/gen/store"
+	"github.com/EgoSay/kairos/internal/identifier"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
 )
 
 // ErrLastSpaceAdmin indicates that a membership mutation would leave an active

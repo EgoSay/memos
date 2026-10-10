@@ -1,41 +1,17 @@
-# Security Policy
+# Kairos 安全问题反馈
 
-## Supported Versions
+Kairos 是独立维护的私密生活记录工具。安全修复优先针对当前维护分支和新发布版本；旧版是否回补按具体影响决定，暂不承诺固定支持周期。
 
-Memos is currently a `0.x` project. Security fixes are only provided for the latest release. Older releases are not supported for security updates, and fixes are not backported.
+## 私密报告
 
-If you run Memos in production, keep your instance updated to the latest release.
+请使用本仓库的 [私密漏洞报告入口](https://github.com/EgoSay/kairos/security/advisories/new)。报告由 Kairos 维护者接收；不要向原项目的邮箱投递本项目的问题，也不要在公开 issue 或 PR 中附上密码、访问令牌、私人记录或尚未修复问题的敏感细节。
 
-## Reporting a Vulnerability
+请说明受影响版本或提交、部署方式、问题表现、影响范围，以及能帮助维护者在隔离环境核验的最少信息。普通使用问题请提交 [issue](https://github.com/EgoSay/kairos/issues)。
 
-Please report security issues privately by email: `dev@usememos.com`
+维护者会根据报告确认影响、修复方式和披露时间；目前没有固定响应时限或奖金计划。
 
-Do not open public GitHub issues, discussions, or pull requests for suspected vulnerabilities.
+## 自托管
 
-Please include:
+首次开放公网前完成管理员初始化，核对私密模式和注册设置，配置 HTTPS，并限制管理入口的访问范围。定期升级并验证数据库与附件的可恢复备份。
 
-- A clear description of the issue
-- Steps to reproduce
-- Affected version or commit
-- Deployment details that matter to reproduction
-- Your assessment of impact
-
-We will review reports as time permits and fix valid issues in regular releases.
-
-## Disclosure and CVEs
-
-Memos is self-hosted software and is still in the `0.x` stage. At this stage, we do not run a formal disclosure program, publish separate security advisories for every issue, or request CVE IDs.
-
-Security fixes may be shipped directly in normal releases or noted briefly in release notes and changelogs.
-
-## Self-Hosted Deployment Notes
-
-The security posture of a Memos instance depends heavily on how it is deployed and operated. In particular:
-
-- Keep Memos updated
-- Put it behind a properly configured reverse proxy when exposed to the internet
-- Require authentication for any non-public deployment
-- Use TLS in production
-- Limit access to trusted users and administrators
-
-Reports that depend entirely on intentionally unsafe deployment choices, unsupported local patches, or administrator actions may be treated as deployment issues rather than product vulnerabilities.
+完整部署与恢复说明见 [部署文档](docs/operations/deployment.md)。

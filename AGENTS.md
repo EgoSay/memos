@@ -5,7 +5,8 @@ repo. If a fact here conflicts with source files or CI config, trust the source 
 
 ## Project Snapshot
 
-Memos is a self-hosted note-taking app.
+Kairos is a private, self-hosted life journal. Its product philosophy and brand
+belong to this repository; read `BRAND.md` and `README.md` for the current direction.
 
 - Backend: Go 1.27.0, Echo v5, Connect RPC, gRPC-Gateway, Protocol Buffers.
 - Frontend: React 19, TypeScript 7, Vite 8, Tailwind CSS v4, React Query v5.
@@ -26,7 +27,9 @@ Memos is a self-hosted note-taking app.
 - ADRs and their companion glossary have been retired. Do not recreate them unless explicitly requested.
 - Design documents in `docs/design/` are frozen after implementation. Do not update implemented designs to track later code changes.
 - New and unimplemented designs may still evolve. Frozen documents record the original design; verify current behavior in source code and tests.
-- Brand copy (tagline, descriptions, README intro) comes verbatim from [`BRAND.md`](https://github.com/usememos/.github/blob/main/BRAND.md) in `usememos/.github`. Change it there first; do not keep brand guidelines in this repo.
+- Brand copy and assets are maintained in this repository's `BRAND.md` and `web/public/`. Update the relevant app surfaces and README together.
+- Keep upstream copyright notices and factual historical references. New help, issues, source and deployment links point to `EgoSay/kairos`.
+- Preserve existing data paths, database names, API wire names and `MEMOS_*` configuration inputs unless a change explicitly includes their migration. Branding changes must not create an empty replacement data volume or invalidate existing archives.
 - Keep contributor guidance in this file and package-local `README.md` or `doc.go` files current when relevant code changes.
 
 ## Commands
@@ -110,7 +113,7 @@ Black-box service tests live in `server/api/v1/test/`, unit tests next to the co
 
 - Wrap errors with `errors.Wrap(err, "context")` from `github.com/pkg/errors`; do not use `fmt.Errorf`.
 - Return service errors with `status.Errorf(codes.X, "message")`.
-- Keep imports grouped as stdlib, third-party, then `github.com/usememos/memos`; goimports is run by golangci-lint.
+- Keep imports grouped as stdlib, third-party, then `github.com/EgoSay/kairos`; goimports is run by golangci-lint.
 - Add doc comments for exported identifiers; godot enforces exported comment punctuation.
 - Avoid package-level mutable state unless the surrounding package already uses that pattern.
 
@@ -144,7 +147,7 @@ Black-box service tests live in `server/api/v1/test/`, unit tests next to the co
   ordinary branch pushes and PR merges never start production deployment. RC tags deploy too.
 - Development builds use the HEAD committer date in UTC as `YY.MM`; release builds inject the CalVer tag.
 - `go build` embeds Git metadata automatically; `go run` needs `-buildvcs=true`. Builds without Git metadata must inject
-  `github.com/usememos/memos/internal/version.Version` through `-ldflags`.
+  `github.com/EgoSay/kairos/internal/version.Version` through `-ldflags`.
 - Docker excludes `.git`; pass `--build-arg VERSION="$(bash scripts/release_version.sh development-version)"` and
   `--build-arg COMMIT="$(git rev-parse HEAD)"` when building locally (build frontend assets first).
 

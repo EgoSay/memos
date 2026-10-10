@@ -19,7 +19,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/internal/random"
+	"github.com/EgoSay/kairos/internal/random"
 )
 
 const (

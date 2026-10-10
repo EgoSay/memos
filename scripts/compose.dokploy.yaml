@@ -2,7 +2,7 @@ services:
   memos:
     # GitHub builds and checks the complete image before Dokploy pulls it.
     # An immutable commit tag can be supplied for a rollback.
-    image: ${MEMOS_IMAGE:-ghcr.io/egosay/memos-journal:production}
+    image: ${MEMOS_IMAGE:-ghcr.io/egosay/kairos:production}
     pull_policy: always
     restart: unless-stopped
     init: true
@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
     command: tunnel --no-autoupdate run
     environment:
-      TUNNEL_TOKEN: ${MEMOS_TUNNEL_TOKEN:?Set the token of the dedicated Memos tunnel}
+      TUNNEL_TOKEN: ${MEMOS_TUNNEL_TOKEN:?Set the token of the dedicated Kairos tunnel}
     depends_on:
       memos:
         condition: service_healthy

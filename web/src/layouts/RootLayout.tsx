@@ -23,7 +23,7 @@ import { InstanceAccessMode } from "@/types/proto/api/v1/instance_service_pb";
 import { buildAuthRoute, shouldGatePrivateInstance } from "@/utils/auth-redirect";
 import { useTranslate } from "@/utils/i18n";
 
-const MEMOS_DEPLOY_URL = "https://usememos.com/docs/deploy";
+const MEMOS_DEPLOY_URL = "https://github.com/EgoSay/kairos/blob/main/docs/operations/deployment.md";
 
 const DemoBanner = () => {
   const t = useTranslate();

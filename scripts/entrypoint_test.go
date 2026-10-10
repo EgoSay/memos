@@ -35,8 +35,8 @@ func TestEntrypointDoesNotLoopWhenTargetUIDIsRoot(t *testing.T) {
 	output, err := cmd.CombinedOutput()
 	require.NoError(t, err, string(output))
 	require.NotEqual(t, context.DeadlineExceeded, ctx.Err(), "entrypoint recursed instead of launching the command")
-	require.Contains(t, string(output), "memos: starting as UID:GID 0:0")
-	require.Equal(t, 1, strings.Count(string(output), "memos: starting as UID:GID 0:0"))
+	require.Contains(t, string(output), "kairos: starting as UID:GID 0:0")
+	require.Equal(t, 1, strings.Count(string(output), "kairos: starting as UID:GID 0:0"))
 	require.Contains(t, string(output), "started-once")
 }
 

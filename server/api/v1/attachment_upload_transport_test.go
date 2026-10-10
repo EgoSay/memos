@@ -15,9 +15,9 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	"github.com/usememos/memos/proto/gen/api/v1/apiv1connect"
-	"github.com/usememos/memos/server/auth"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	"github.com/EgoSay/kairos/proto/gen/api/v1/apiv1connect"
+	"github.com/EgoSay/kairos/server/auth"
 )
 
 type uploadCountingReader struct {

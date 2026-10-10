@@ -10,9 +10,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/usememos/memos/internal/webhook"
-	"github.com/usememos/memos/store"
-	storetest "github.com/usememos/memos/store/test"
+	"github.com/EgoSay/kairos/internal/webhook"
+	"github.com/EgoSay/kairos/store"
+	storetest "github.com/EgoSay/kairos/store/test"
 )
 
 type fixture struct {

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	stderrors "errors"
 
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 func authorizeSQLiteMemoComment(ctx context.Context, tx dbExecutor, contextMemoID, actorUserID int32) error {

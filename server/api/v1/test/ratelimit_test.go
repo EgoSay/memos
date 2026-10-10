@@ -15,12 +15,12 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"github.com/usememos/memos/internal/clientip"
-	"github.com/usememos/memos/internal/ratelimit"
-	apiv1 "github.com/usememos/memos/proto/gen/api/v1"
-	apiv1server "github.com/usememos/memos/server/api/v1"
-	"github.com/usememos/memos/server/auth"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/internal/clientip"
+	"github.com/EgoSay/kairos/internal/ratelimit"
+	apiv1 "github.com/EgoSay/kairos/proto/gen/api/v1"
+	apiv1server "github.com/EgoSay/kairos/server/api/v1"
+	"github.com/EgoSay/kairos/server/auth"
+	"github.com/EgoSay/kairos/store"
 )
 
 // limitedPolicy returns the default table with one scope tightened.

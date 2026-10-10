@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 func validateSQLiteReactionWritePolicy(ctx context.Context, tx dbExecutor, reaction *store.Reaction) error {

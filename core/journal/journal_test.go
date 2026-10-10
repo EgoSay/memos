@@ -9,10 +9,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/usememos/memos/core/journal"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	"github.com/usememos/memos/store"
-	storetest "github.com/usememos/memos/store/test"
+	"github.com/EgoSay/kairos/core/journal"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	"github.com/EgoSay/kairos/store"
+	storetest "github.com/EgoSay/kairos/store/test"
 )
 
 func TestReviewFrozenSetRemovalAndCalendarTimezone(t *testing.T) {

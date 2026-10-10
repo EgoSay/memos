@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
-	"github.com/usememos/memos/core/journal"
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/journal"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	"github.com/EgoSay/kairos/store"
 )
 
 func journalHTTP(ctx context.Context, t *testing.T, e *echo.Echo, method, path string, body any) *httptest.ResponseRecorder {

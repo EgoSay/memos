@@ -20,14 +20,14 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/semaphore"
 
-	"github.com/usememos/memos/core/access"
-	"github.com/usememos/memos/internal/imagelimit"
-	"github.com/usememos/memos/internal/motionphoto"
-	"github.com/usememos/memos/internal/profile"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	"github.com/usememos/memos/provider/storage"
-	"github.com/usememos/memos/server/auth"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/access"
+	"github.com/EgoSay/kairos/internal/imagelimit"
+	"github.com/EgoSay/kairos/internal/motionphoto"
+	"github.com/EgoSay/kairos/internal/profile"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	"github.com/EgoSay/kairos/provider/storage"
+	"github.com/EgoSay/kairos/server/auth"
+	"github.com/EgoSay/kairos/store"
 )
 
 // Constants for file serving configuration.

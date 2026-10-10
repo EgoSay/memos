@@ -14,12 +14,12 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 
-	"github.com/usememos/memos/internal/identifier"
-	mast "github.com/usememos/memos/markdown/ast"
-	"github.com/usememos/memos/markdown/extensions"
-	mparser "github.com/usememos/memos/markdown/parser"
-	"github.com/usememos/memos/markdown/renderer"
-	storepb "github.com/usememos/memos/proto/gen/store"
+	"github.com/EgoSay/kairos/internal/identifier"
+	mast "github.com/EgoSay/kairos/markdown/ast"
+	"github.com/EgoSay/kairos/markdown/extensions"
+	mparser "github.com/EgoSay/kairos/markdown/parser"
+	"github.com/EgoSay/kairos/markdown/renderer"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
 )
 
 // ManagedAttachmentReference is an attachment URL embedded using Markdown image syntax.

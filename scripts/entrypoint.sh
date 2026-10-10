@@ -15,7 +15,7 @@ if [ "$(id -u)" = "0" ] && [ -z "${MEMOS_ENTRYPOINT_SWITCHED:-}" ]; then
     if [ -d "$DATA_DIR" ]; then
         chown -R "$MEMOS_UID:$MEMOS_GID" "$DATA_DIR" 2>/dev/null || true
     fi
-    echo "memos: starting as UID:GID ${MEMOS_UID}:${MEMOS_GID}"
+    echo "kairos: starting as UID:GID ${MEMOS_UID}:${MEMOS_GID}"
     export MEMOS_ENTRYPOINT_SWITCHED=1
     exec su-exec "$MEMOS_UID:$MEMOS_GID" "$0" "$@"
 fi

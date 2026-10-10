@@ -3,8 +3,8 @@ package sqlite
 import (
 	"context"
 
-	"github.com/usememos/memos/store"
-	"github.com/usememos/memos/store/db/journalsql"
+	"github.com/EgoSay/kairos/store"
+	"github.com/EgoSay/kairos/store/db/journalsql"
 )
 
 func (d *DB) journalRepository() journalsql.Repository {

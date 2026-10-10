@@ -11,8 +11,8 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	apiv1 "github.com/usememos/memos/proto/gen/api/v1"
-	"github.com/usememos/memos/store"
+	apiv1 "github.com/EgoSay/kairos/proto/gen/api/v1"
+	"github.com/EgoSay/kairos/store"
 )
 
 func TestUpdateMemoTimestamps(t *testing.T) {

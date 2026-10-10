@@ -3,7 +3,7 @@ package store
 import (
 	"context"
 
-	storepb "github.com/usememos/memos/proto/gen/store"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
 )
 
 // InboxStatus represents the status of an inbox notification.

@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 
-	"github.com/usememos/memos/internal/version"
+	"github.com/EgoSay/kairos/internal/version"
 )
 
 func TestServerFlagsAreNotInheritedBySubcommands(t *testing.T) {

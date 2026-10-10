@@ -8,7 +8,7 @@ import (
 
 	"github.com/labstack/echo/v5"
 
-	"github.com/usememos/memos/internal/profile"
+	"github.com/EgoSay/kairos/internal/profile"
 )
 
 func TestAllowedCORSOrigin(t *testing.T) {

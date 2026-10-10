@@ -34,7 +34,14 @@ describe("cold offline device drafts", () => {
     render(<OfflineJournal owner={owner} />);
     await waitFor(() => expect(screen.getByRole("textbox")).toHaveValue("离线草稿"));
     expect(drafts.list).toHaveBeenCalledWith("users/one");
-    expect(drafts.save).toHaveBeenCalledWith("offline:users/one", "users/one", expect.objectContaining({ content: "离线草稿" }), undefined);
+    await waitFor(() =>
+      expect(drafts.save).toHaveBeenCalledWith(
+        "offline:users/one",
+        "users/one",
+        expect.objectContaining({ content: "离线草稿" }),
+        undefined,
+      ),
+    );
   });
 
   it("keeps the exact input and draft on a failed pending save", async () => {

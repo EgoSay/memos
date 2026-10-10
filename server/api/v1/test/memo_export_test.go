@@ -17,12 +17,12 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/usememos/memos/core/memoexport"
-	"github.com/usememos/memos/internal/ratelimit"
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
-	storepb "github.com/usememos/memos/proto/gen/store"
-	apiv1 "github.com/usememos/memos/server/api/v1"
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/core/memoexport"
+	"github.com/EgoSay/kairos/internal/ratelimit"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
+	apiv1 "github.com/EgoSay/kairos/server/api/v1"
+	"github.com/EgoSay/kairos/store"
 )
 
 // archiveFixture is the state one user builds before exporting.

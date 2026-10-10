@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/usememos/memos/internal/identifier"
+	"github.com/EgoSay/kairos/internal/identifier"
 
-	storepb "github.com/usememos/memos/proto/gen/store"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
 )
 
 // ErrMemoSpaceNotWritable indicates that a memo targets a missing or otherwise

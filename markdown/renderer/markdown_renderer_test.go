@@ -10,7 +10,7 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 
-	"github.com/usememos/memos/markdown/extensions"
+	"github.com/EgoSay/kairos/markdown/extensions"
 )
 
 func TestMarkdownRenderer(t *testing.T) {

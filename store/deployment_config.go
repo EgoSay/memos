@@ -15,8 +15,8 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/usememos/memos/internal/identifier"
-	storepb "github.com/usememos/memos/proto/gen/store"
+	"github.com/EgoSay/kairos/internal/identifier"
+	storepb "github.com/EgoSay/kairos/proto/gen/store"
 )
 
 const (

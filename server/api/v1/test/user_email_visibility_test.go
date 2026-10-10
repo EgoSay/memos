@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	apiv1 "github.com/usememos/memos/proto/gen/api/v1"
+	apiv1 "github.com/EgoSay/kairos/proto/gen/api/v1"
 )
 
 func TestUserEmailVisibility(t *testing.T) {

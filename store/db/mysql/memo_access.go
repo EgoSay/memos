@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/usememos/memos/store"
+	"github.com/EgoSay/kairos/store"
 )
 
 // mysqlMemoAccessPredicate builds the canonical memo-local read predicate for

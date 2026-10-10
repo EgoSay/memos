@@ -10,11 +10,11 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/usememos/memos/core/journal"
-	"github.com/usememos/memos/core/journalbackup"
-	"github.com/usememos/memos/core/journalrecord"
-	"github.com/usememos/memos/core/partition"
-	v1pb "github.com/usememos/memos/proto/gen/api/v1"
+	"github.com/EgoSay/kairos/core/journal"
+	"github.com/EgoSay/kairos/core/journalbackup"
+	"github.com/EgoSay/kairos/core/journalrecord"
+	"github.com/EgoSay/kairos/core/partition"
+	v1pb "github.com/EgoSay/kairos/proto/gen/api/v1"
 )
 
 // Validate all restorable documents before any existing grant is paused or any
