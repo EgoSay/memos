@@ -2,7 +2,7 @@ services:
   memos:
     # GitHub builds and checks the complete image before Dokploy pulls it.
     # An immutable commit tag can be supplied for a rollback.
-    image: ghcr.io/egosay/memos-journal@sha256:9b5136aeed10886f1dfe537e2204d62ed68ecf5eee4a1305143df944d4e2f639
+    image: ghcr.io/egosay/memos-journal@sha256:c09362b709eebed7caec1a829637cb57655b99ccc622fc5397af30cefc3bf549
     pull_policy: always
     restart: unless-stopped
     init: true
