@@ -383,7 +383,7 @@ function createTagNode(tagValue: string, source: string): TagNode {
       className: "tag",
       "data-tag": tagValue,
     },
-    hChildren: [{ type: "text", value: source }],
+    hChildren: [{ type: "text", value: source.startsWith('#"') ? `#${tagValue}` : source }],
   };
 
   return {

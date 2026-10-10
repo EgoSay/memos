@@ -909,6 +909,24 @@ func TestRenameTagSkipsTagsInsideLinks(t *testing.T) {
 	assert.Equal(t, "[release #notes](https://example.com/releases#release-notes)\n\nOutside #done", result)
 }
 
+func TestQuotedTagsSurviveRenderingAndEditing(t *testing.T) {
+	svc := NewService(WithTagExtension())
+	content := "**#\"读书/书名（新版）\"** #ordinary\n\n`#\"code:only\"` [#\"link:only\"](/x)"
+	tags, err := svc.ExtractTags([]byte(content))
+	require.NoError(t, err)
+	require.Equal(t, []string{"读书", "读书/书名（新版）", "ordinary"}, tags)
+	rendered, err := svc.RenderMarkdown([]byte(content))
+	require.NoError(t, err)
+	tags, err = svc.ExtractTags([]byte(rendered + "\n\nA later edit."))
+	require.NoError(t, err)
+	require.Equal(t, []string{"读书", "读书/书名（新版）", "ordinary"}, tags)
+	renamed, err := svc.RenameTag([]byte(content), "读书/书名（新版）", "读书/甲、乙、丙")
+	require.NoError(t, err)
+	tags, err = svc.ExtractTags([]byte(renamed))
+	require.NoError(t, err)
+	require.Equal(t, []string{"读书", "读书/甲、乙、丙", "ordinary"}, tags)
+}
+
 func TestRenameTagOnlyChangesRecognizedSourceSpans(t *testing.T) {
 	svc := NewService(WithTagExtension())
 	for _, content := range []string{

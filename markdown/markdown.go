@@ -17,6 +17,7 @@ import (
 	"github.com/usememos/memos/internal/identifier"
 	mast "github.com/usememos/memos/markdown/ast"
 	"github.com/usememos/memos/markdown/extensions"
+	mparser "github.com/usememos/memos/markdown/parser"
 	"github.com/usememos/memos/markdown/renderer"
 	storepb "github.com/usememos/memos/proto/gen/store"
 )
@@ -564,8 +565,12 @@ func (s *service) RenameTag(content []byte, oldTag, newTag string) (string, erro
 	cursor := 0
 	for _, sourceRange := range ranges {
 		output.Write(content[cursor:sourceRange.start])
-		output.WriteByte('#')
-		output.WriteString(newTag)
+		if spelling, ok := mparser.FormatTag(newTag); ok {
+			output.WriteString(spelling)
+		} else {
+			output.WriteByte('#')
+			output.WriteString(newTag)
+		}
 		cursor = sourceRange.end
 	}
 	output.Write(content[cursor:])

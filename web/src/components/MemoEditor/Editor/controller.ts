@@ -2,7 +2,7 @@ import { isolateHistory } from "@codemirror/commands";
 import { ensureSyntaxTree, syntaxTree } from "@codemirror/language";
 import { EditorSelection, type EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { isCompleteTagValue } from "@/utils/tag-grammar";
+import { formatTag } from "@/utils/tag-grammar";
 import type { EditorController, FormattingController } from "../types/editorController";
 import { findMarkdownTagMatches } from "./markdownTagRanges";
 import {
@@ -42,18 +42,19 @@ export function createController(view: EditorView, formatting: FormattingControl
       return found;
     },
     insertTag: (tag) => {
-      if (!isCompleteTagValue(tag) || view.compositionStarted || currentTags().includes(tag)) return false;
+      const spelling = formatTag(tag);
+      if (!spelling || view.compositionStarted || currentTags().includes(tag)) return false;
       const { doc, selection } = view.state;
       const { head } = selection.main;
       // Like insertMarkdown, keep highlighted text and insert at the active end.
       // Honor the chosen Markdown context, including code, instead of relocating it.
       const prefix = head > 0 && !/\s/.test(doc.sliceString(head - 1, head)) ? " " : "";
       const hasFollowingSpace = /^[ \t]$/.test(doc.sliceString(head, head + 1));
-      const insert = `${prefix}#${tag}${hasFollowingSpace ? "" : " "}`;
+      const insert = `${prefix}${spelling}${hasFollowingSpace ? "" : " "}`;
       view.dispatch({
         changes: { from: head, insert },
         // Exactly one space follows the tag, inserted or reused; the caret lands after it.
-        selection: { anchor: head + prefix.length + tag.length + 2 },
+        selection: { anchor: head + prefix.length + spelling.length + 1 },
         annotations: isolateHistory.of("full"),
         userEvent: "input",
         scrollIntoView: true,

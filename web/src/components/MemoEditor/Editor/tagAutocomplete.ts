@@ -1,7 +1,7 @@
 import { autocompletion, type CompletionContext, type CompletionResult } from "@codemirror/autocomplete";
 import { ensureSyntaxTree, syntaxTree } from "@codemirror/language";
 import type { Extension } from "@codemirror/state";
-import { findTagMatches, isTagIntroducerAt } from "@/utils/tag-grammar";
+import { findTagMatches, formatTag, isTagIntroducerAt } from "@/utils/tag-grammar";
 
 /**
  * Ranks a candidate tag against the typed text (both already lower-cased).
@@ -45,10 +45,12 @@ export function makeTagCompletionSource(getTags: () => string[]) {
     const typed = (match ? match.value + (match.to < position ? "/" : "") : "").toLowerCase();
     const options = getTags()
       .map((tag) => ({ tag, rank: matchRank(tag.toLowerCase(), typed) }))
-      .filter((candidate): candidate is { tag: string; rank: number } => candidate.rank !== undefined)
+      .filter(
+        (candidate): candidate is { tag: string; rank: number } => candidate.rank !== undefined && formatTag(candidate.tag) !== undefined,
+      )
       // Stable sort, so tags keep their incoming order within a tier.
       .sort((a, b) => a.rank - b.rank)
-      .map(({ tag }) => ({ label: tag, type: "keyword" }));
+      .map(({ tag }) => ({ label: tag, type: "keyword", apply: formatTag(tag)?.slice(1) }));
     if (options.length === 0) return null;
     // `filter: false` keeps this ranking: CodeMirror would otherwise re-filter
     // and re-score the options with its own fuzzy matcher.

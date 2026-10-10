@@ -1,9 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { findTagMatches } from "@/utils/tag-grammar";
+import { findTagMatches, formatTag } from "@/utils/tag-grammar";
 
 const values = (source: string) => findTagMatches(source).map((match) => match.value);
 
 describe("tag scanner", () => {
+  it.each(["读书/标题：副标题", "读书/书名（新版）", "读书/甲、乙、丙", "books/Title:Edition"])("preserves the quoted name %s", (tag) => {
+    const source = `#"${tag}"`;
+    expect(values(source)).toEqual([tag]);
+    expect(formatTag(tag)).toBe(source);
+    expect(findTagMatches(source, 0, source.length - 1)).toEqual([]);
+  });
+
+  it("keeps bare syntax stable and rejects unrepresentable quoted names", () => {
+    expect(formatTag("books/title")).toBe("#books/title");
+    expect(values("#books/Title:Edition")).toEqual(["books/Title"]);
+    for (const tag of ["", "two words", "book//title", "book/title/", 'quote"inside', "book/<title>", "book/\\name"]) {
+      expect(formatTag(tag)).toBeUndefined();
+    }
+  });
+
   it.each([
     ["#tag", ["tag"]],
     ["hello#tag", ["tag"]],
